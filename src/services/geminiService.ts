@@ -1,24 +1,27 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { DesignBlueprint, DesignMode, VideoFormat } from "../types";
 
 export function getAiInstance(customKey?: string) {
   const apiKey = customKey?.trim() || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY?.trim() : null);
-  return apiKey ? new GoogleGenerativeAI(apiKey) : null;
+  // Important: gemini-api skill says to always call from frontend and use GoogleGenAI
+  return apiKey ? new GoogleGenAI({ apiKey }) : null;
 }
 
 export async function verifyApiKey(key: string): Promise<{ valid: boolean; error?: string; rawError?: any }> {
   const trimmedKey = key.trim();
   if (!trimmedKey) return { valid: false, error: "Chave vazia" };
 
-  // Models to try in order of preference
-  const testModels = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
+  // Models to try in order of preference (modern 3 series)
+  const testModels = ["gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-flash-latest"];
   let lastError: any = null;
 
   for (const modelName of testModels) {
     try {
-      const genAI = new GoogleGenerativeAI(trimmedKey);
-      const model = genAI.getGenerativeModel({ model: modelName });
-      await model.generateContent("ping");
+      const ai = new GoogleGenAI({ apiKey: trimmedKey });
+      await ai.models.generateContent({
+        model: modelName,
+        contents: "ping",
+      });
       return { valid: true };
     } catch (err: any) {
       lastError = err;
@@ -29,7 +32,12 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
         return { valid: false, error: "COTA_EXCEDIDA: Sua chave atingiu o limite de uso gratuito. Tente em 1 minuto.", rawError: err };
       }
       
-      // If it's not a 404 (model not found), it's likely an invalid key error
+      // If it's a permission denied, key is likely invalid or wrong project
+      if (msg.includes("403") || msg.includes("PERMISSION_DENIED") || msg.includes("API_KEY_INVALID")) {
+        break;
+      }
+
+      // If it's not a 404 (model not found), it's likely a fatal error
       if (!msg.includes("404") && !msg.includes("not found")) {
         break; 
       }
@@ -51,7 +59,7 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
   if (msg.includes("404") || msg.includes("not found")) {
     return {
       valid: false,
-      error: "ERRO DE MODELO: Os modelos Gemini não foram encontrados para esta chave. Verifique se sua conta tem acesso à API Generative Language.",
+      error: "ERRO DE MODELO: Nenhum modelo disponível foi encontrado para esta chave. Verifique se sua conta tem acesso à API no Google AI Studio.",
       rawError: lastError
     };
   }
@@ -66,8 +74,8 @@ export async function generateDesignBlueprint(
   customApiKey?: string,
   isStoryBatch: boolean = false
 ): Promise<DesignBlueprint> {
-  const genAI = getAiInstance(customApiKey);
-  if (!genAI) {
+  const ai = getAiInstance(customApiKey);
+  if (!ai) {
     throw new Error("API KEY não encontrada. Vá em Configurações e insira sua Gemini API Key.");
   }
   
@@ -103,66 +111,63 @@ export async function generateDesignBlueprint(
     - SAFE ZONES: Centralize elementos críticos. Em 9:16, ignore os 15% superiores e inferiores.
   `;
 
-  try {
-  const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
+  const modelsToTry = ["gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-flash-latest"];
   let lastError: any = null;
 
   for (const modelName of modelsToTry) {
     try {
-      const model = genAI.getGenerativeModel({
+      const response = await ai.models.generateContent({
         model: modelName,
-        systemInstruction,
-        generationConfig: {
+        contents: script,
+        config: {
+          systemInstruction,
           responseMimeType: "application/json",
           responseSchema: {
-            type: SchemaType.OBJECT,
+            type: Type.OBJECT,
             required: ["id", "mode", "format", "scenes", "colors", "fontFamily"],
             properties: {
-              id: { type: SchemaType.STRING },
-              name: { type: SchemaType.STRING },
-              mode: { type: SchemaType.STRING, format: "enum", enum: ["ULTRA_VIRAL", "MINIMALIST", "CINEMATIC", "DARK_LUXURY", "NEON_TECH"] },
-              format: { type: SchemaType.STRING, format: "enum", enum: ["9:16", "16:9"] },
-              fontFamily: { type: SchemaType.STRING },
-              isStoryBatch: { type: SchemaType.BOOLEAN },
+              id: { type: Type.STRING },
+              name: { type: Type.STRING },
+              mode: { type: Type.STRING, enum: ["ULTRA_VIRAL", "MINIMALIST", "CINEMATIC", "DARK_LUXURY", "NEON_TECH"] },
+              format: { type: Type.STRING, enum: ["9:16", "16:9"] },
+              fontFamily: { type: Type.STRING },
+              isStoryBatch: { type: Type.BOOLEAN },
               colors: {
-                type: SchemaType.OBJECT,
+                type: Type.OBJECT,
                 required: ["primary", "secondary", "accent", "background"],
                 properties: {
-                  primary: { type: SchemaType.STRING },
-                  secondary: { type: SchemaType.STRING },
-                  accent: { type: SchemaType.STRING },
-                  background: { type: SchemaType.STRING },
+                  primary: { type: Type.STRING },
+                  secondary: { type: Type.STRING },
+                  accent: { type: Type.STRING },
+                  background: { type: Type.STRING },
                 }
               },
               scenes: {
-                type: SchemaType.ARRAY,
+                type: Type.ARRAY,
                 items: {
-                  type: SchemaType.OBJECT,
+                  type: Type.OBJECT,
                   required: ["id", "text", "highlightWords", "animation", "duration", "layoutType", "impact"],
                   properties: {
-                    id: { type: SchemaType.STRING },
-                    text: { type: SchemaType.STRING },
-                    subtext: { type: SchemaType.STRING },
-                    highlightWords: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-                    animation: { type: SchemaType.STRING, format: "enum", enum: ["fade", "zoom", "typewriter", "slide-up", "glitch", "blur-reveal", "stagger"] },
-                    duration: { type: SchemaType.NUMBER },
-                    layoutType: { type: SchemaType.STRING, format: "enum", enum: ["centered", "top", "bottom", "split", "bento", "hero", "card", "feature-list", "gallery", "timeline"] },
-                    impact: { type: SchemaType.STRING, format: "enum", enum: ["low", "medium", "high"] },
-                    backgroundEmoji: { type: SchemaType.STRING },
-                    ctaText: { type: SchemaType.STRING }
+                    id: { type: Type.STRING },
+                    text: { type: Type.STRING },
+                    subtext: { type: Type.STRING },
+                    highlightWords: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    animation: { type: Type.STRING, enum: ["fade", "zoom", "typewriter", "slide-up", "glitch", "blur-reveal", "stagger"] },
+                    duration: { type: Type.NUMBER },
+                    layoutType: { type: Type.STRING, enum: ["centered", "top", "bottom", "split", "bento", "hero", "card", "feature-list", "gallery", "timeline"] },
+                    impact: { type: Type.STRING, enum: ["low", "medium", "high"] },
+                    backgroundEmoji: { type: Type.STRING },
+                    ctaText: { type: Type.STRING }
                   }
                 }
               },
-              soundHint: { type: SchemaType.STRING }
+              soundHint: { type: Type.STRING }
             }
           }
         }
       });
 
-      const result = await model.generateContent(script);
-      const response = await result.response;
-      const text = response.text();
-      
+      const text = response.text;
       if (!text) throw new Error("Could not generate blueprint");
       
       return JSON.parse(text) as DesignBlueprint;
@@ -174,12 +179,11 @@ export async function generateDesignBlueprint(
       if (!msg.includes("404") && !msg.includes("not found")) {
         break;
       }
-      // If it is a 404, try next model
       console.warn(`Model ${modelName} not found, trying next...`);
     }
   }
 
-  // If we reach here, either it was a fatal error or all models failed with 404
+  // If we reach here, report final error correctly
   const finalErrorMsg = lastError?.message || String(lastError);
   console.error("Gemini Generation Error:", lastError);
 
@@ -191,8 +195,4 @@ export async function generateDesignBlueprint(
   }
   
   throw new Error(`ERRO_API: ${finalErrorMsg}`);
-  } catch (globalErr: any) {
-    throw globalErr;
-  }
 }
-
