@@ -12,8 +12,9 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
   if (!trimmedKey) return { valid: false, error: "Chave vazia" };
 
   // Models to try in order of preference
-  const testModels = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
+  const testModels = ["gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-2.0-flash"];
   let lastError: any = null;
+  let hasPermissionError = false;
 
   for (const modelName of testModels) {
     try {
@@ -25,30 +26,33 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
       return { valid: true };
     } catch (err: any) {
       lastError = err;
-      const msg = err.message || String(err);
+      const msg = (err.message || String(err)).toUpperCase();
       
       // If it's a quota error, we stop and report it
       if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
         return { valid: false, error: "COTA_EXCEDIDA: Sua chave atingiu o limite de uso gratuito. Tente em 1 minuto.", rawError: err };
       }
       
-      // If it's a permission denied, key is likely invalid or wrong project
-      if (msg.includes("403") || msg.includes("PERMISSION_DENIED") || msg.includes("API_KEY_INVALID")) {
+      // If it's explicitly an invalid API key error, we break
+      if (msg.includes("API_KEY_INVALID") || msg.includes("KEY NOT VALID") || msg.includes("401")) {
         break;
       }
 
-      // If it's not a 404 (model not found), it's likely a fatal error
-      if (!msg.includes("404") && !msg.includes("not found")) {
-        break; 
+      // If it's a permission denied for THIS model, we note it but try next
+      if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
+        hasPermissionError = true;
+        continue;
       }
-      // If it IS a 404, we continue to the next model in the list
+
+      // If it's not a 404 (model not found), it's likely a fatal error, but let's try others anyway
     }
   }
 
   console.error("API Key verification failed:", lastError);
-  const msg = lastError?.message || String(lastError);
+  const msg = (lastError?.message || String(lastError)).toUpperCase();
   
-  if (msg.includes("403") || msg.includes("400") || msg.includes("API_KEY_INVALID") || msg.includes("not valid")) {
+  // If we had at least one permission error but tried all models, maybe the key is valid but restricted
+  if (msg.includes("API_KEY_INVALID") || msg.includes("KEY NOT VALID") || msg.includes("401")) {
     return { 
       valid: false, 
       error: "CHAVE_INVALIDA: O Google recusou esta chave. Verifique se copiou a chave COMPLETA e se ela está ativa no Google AI Studio.",
@@ -56,10 +60,10 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
     };
   }
 
-  if (msg.includes("404") || msg.includes("not found")) {
+  if (hasPermissionError) {
     return {
       valid: false,
-      error: "ERRO DE MODELO: Nenhum modelo disponível foi encontrado para esta chave. Verifique se sua conta tem acesso à API no Google AI Studio.",
+      error: "ERRO_PERMISSAO: Sua chave é válida, mas não tem permissão para os modelos necessários. Verifique se o faturamento está ok no Google Cloud ou use uma chave do Google AI Studio.",
       rawError: lastError
     };
   }
@@ -206,8 +210,18 @@ export async function generateDesignBlueprint(
         break;
       }
 
-      // If it's not a 404, we don't try other models (likely a different error like quota or content filter)
-      if (!msg.includes("404") && !msg.includes("not found")) {
+      // If it's a permission error, we try the next model
+      if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
+        continue;
+      }
+
+      // If it's a quota error, we break
+      if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
+        break;
+      }
+
+      // If it's not a 404, we don't try other models
+      if (!msg.includes("404") && !msg.includes("NOT_FOUND")) {
         break;
       }
     }
