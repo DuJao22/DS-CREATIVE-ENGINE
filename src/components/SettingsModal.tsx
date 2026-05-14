@@ -19,7 +19,6 @@ export function SettingsModal({ onClose, onSave, currentKey }: SettingsModalProp
     setIsVerifying(true);
     setStatus('idle');
     const isValid = await verifyApiKey(apiKey);
-    setIsVerifying(isValid ? 'success' : 'error' as any);
     setStatus(isValid ? 'success' : 'error');
     if (isValid) {
       onSave(apiKey);
@@ -110,6 +109,24 @@ export function SettingsModal({ onClose, onSave, currentKey }: SettingsModalProp
             Sua chave é salva apenas localmente no seu navegador.<br/>
             A DS Company não tem acesso à sua chave.
           </p>
+
+          <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500/80">Tutorial: Nova Chave</h4>
+            <div className="space-y-2">
+              <div className="flex gap-3 text-[10px] text-white/40">
+                <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white">1</span>
+                <span>Clique em "Pegar Chave" acima para abrir o Google AI Studio.</span>
+              </div>
+              <div className="flex gap-3 text-[10px] text-white/40">
+                <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white">2</span>
+                <span>Clique em "Create API key" e depois em "Create API key in new project".</span>
+              </div>
+              <div className="flex gap-3 text-[10px] text-white/40">
+                <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white">3</span>
+                <span>Copie a chave gerada e cole no campo acima.</span>
+              </div>
+            </div>
+          </div>
         </div>
       </motion.div>
     </motion.div>

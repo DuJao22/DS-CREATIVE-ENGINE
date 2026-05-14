@@ -77,9 +77,12 @@ export default function App() {
       const result = await generateDesignBlueprint(script, mode, format, geminiKey, isStoryBatch);
       setBlueprint(result);
       saveToHistory(result);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Erro ao gerar seu criativo. Verifique sua chave de API.");
+    } catch (err: any) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg);
+      if (msg.includes("COTA_EXCEDIDA")) {
+        setIsSettingsOpen(true);
+      }
     } finally {
       setIsGenerating(false);
     }
