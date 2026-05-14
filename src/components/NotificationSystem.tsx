@@ -33,36 +33,38 @@ export function NotificationSystem() {
   }, []);
 
   return (
-    <div className="fixed bottom-6 left-6 z-[200] flex flex-col gap-4 pointer-events-none">
-      {/* Purchase Notification */}
-      <AnimatePresence>
-        {purchase && (
-          <motion.div
-            initial={{ opacity: 0, x: -20, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -20, scale: 0.9 }}
-            onClick={() => window.open('https://lp-curso-saas.vercel.app/', '_blank')}
-            className="flex items-center gap-3 p-3 glass border-white/10 rounded-2xl shadow-xl bg-black/80 backdrop-blur-xl max-w-[280px] pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors"
-          >
-            <div className="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-500">
-              <ShoppingCart className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-white/90 uppercase tracking-widest">{purchase.name} adidquiriu o produto</p>
-              <p className="text-[9px] text-white/40 uppercase font-bold">Há 2 segundos • {purchase.city}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <>
+      {/* Purchase Notification (Bottom Left) */}
+      <div className="fixed bottom-6 left-6 z-[9999] flex flex-col gap-4 pointer-events-none">
+        <AnimatePresence>
+          {purchase && (
+            <motion.div
+              initial={{ opacity: 0, x: -20, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -20, scale: 0.9 }}
+              onClick={() => window.open('https://lp-curso-saas.vercel.app/', '_blank')}
+              className="flex items-center gap-3 p-3 glass border-white/10 rounded-2xl shadow-xl bg-black/80 backdrop-blur-xl max-w-[280px] pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors"
+            >
+              <div className="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-500">
+                <ShoppingCart className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-white/90 uppercase tracking-widest">{purchase.name} adidquiriu o produto</p>
+                <p className="text-[9px] text-white/40 uppercase font-bold">Há 2 segundos • {purchase.city}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-      {/* Course CTA Notification */}
+      {/* Course CTA Notification (Centered Bottom) */}
       <AnimatePresence>
         {showCourse && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed inset-x-0 bottom-10 mx-auto flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-x-0 bottom-10 mx-auto flex items-center justify-center p-4 z-[9999] pointer-events-none"
           >
             <div 
               className="group flex flex-col sm:flex-row items-center gap-5 p-5 glass border-orange-500/30 rounded-[32px] shadow-2xl bg-black/90 backdrop-blur-2xl max-w-lg pointer-events-auto cursor-pointer relative overflow-hidden"
@@ -107,6 +109,6 @@ export function NotificationSystem() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
