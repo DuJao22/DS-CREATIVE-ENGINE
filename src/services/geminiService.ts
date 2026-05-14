@@ -10,8 +10,8 @@ export async function verifyApiKey(key: string): Promise<boolean> {
   try {
     const ai = new GoogleGenAI({ apiKey: key });
     await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: "ping"
+      model: "gemini-1.5-flash",
+      contents: [{ role: 'user', parts: [{ text: "ping" }] }]
     });
     return true;
   } catch (err) {
@@ -33,38 +33,44 @@ export async function generateDesignBlueprint(
   }
   
   const systemInstruction = `
-    Você é um Diretor Criativo Senior (Ex-Apple, Ex-Vercel) e Estrategista de Design.
-    Sua missão é transformar um roteiro em um blueprint de design ultra-profissional para vídeos/stories de alta conversão.
+    Você é um Diretor Criativo Senior (Ex-Apple, Ex-Vercel) especializado em Branding de Alto Luxo e Design de Interface.
+    Sua missão é transformar um roteiro bruto em um "Design Blueprint" ultra-profissional, digno de campanhas premiadas internacionalmente.
     
-    REQUISITO CRÍTICO: 
-    1. Toda a copy gerada (campos 'text', 'subtext', 'ctaText') DEVE ser em PORTUGUÊS DO BRASIL.
-    2. O tom deve ser profissional, persuasivo e sofisticado.
+    REQUISITO CRÍTICO DE IDIOMA:
+    - Toda a copy gerada deve ser em PORTUGUÊS DO BRASIL.
+    - Use um vocabulário sofisticado, direto e de altíssima conversão.
     
-    FILOSOFIA DE DESIGN:
-    - EXCELLENCE: Cada cena deve parecer uma landing page de luxo. No generic text.
-    - TYPOGRAPHY: Use bold, high-contrast typography. Use specific 'fontFamily' names like 'Inter', 'Space Grotesk', 'Outfit', or 'Playfair Display'.
-    - HIERARCHY: Use 'subtext' for secondary details. Ensure the 'text' is punchy and high-impact.
-    - COLOR THEORY: Select sophisticated palettes (e.g., Deep Charcoal & Electric Indigo, Cream & Forest Green, Midnight Black & Gold).
-    - SAFE ZONES: For ${format}, avoid placing text in the top/bottom 15%. Keep critical elements central.
-    - VISUAL METAPHORS: Use 'backgroundEmoji' creatively as a visual anchor or metaphor for the scene's content.
-    - LAYOUTS:
-       - 'hero': Direct, bold impact.
-       - 'bento': Modern, structured data/feature presentation.
-       - 'card': Focused, elegant product/service highlight in 3D.
-       - 'feature-list': Benefit-driven, scannable layout.
-       - 'gallery': Visual storytelling with multiple assets.
-       - 'timeline': Process or story progression.
-       - 'split': Professional contrast between copy and metaphor.
+    ESTRATÉGIA DE DESIGN (ESTILO "DS COMPANY"):
+    1. HIERARQUIA VISUAL: O texto principal ('text') deve ser a "Hero Statement" - curta, impactante e transformadora.
+    2. NARRATIVA COMPLEMENTAR: O 'subtext' deve fornecer o contexto de autoridade ou a "prova social" que sustenta a 'text'.
+    3. PALETAS DE CORES: Selecione cores HEX que transmitam autoridade. Exemplos:
+       - Dark Luxury: Black Obsidian (#050505), Gold (#D4AF37), Silver (#C0C0C0).
+       - Tech/Neon: Deep Blue (#0A0A1A), Electric Indigo (#6366F1), Cyber Cyan (#22D3EE).
+    4. TIPOGRAFIA: Sugira fontes premium (Inter, Space Grotesk, Outfit, Playfair Display).
+    5. EMOJIS COMO SÍMBOLOS: Use o 'backgroundEmoji' como um ícone minimalista e simbólico, não como decoração barata.
     
-    COPYWRITING:
-    - Transform the user's input into professional, persuasive, and punchy marketing copy in Portuguese.
-    - If the user provides a brief topic, research it using Google Search to provide factual, deep, and expert-level subtext.
+    LAYOUTS DISPONÍVEIS:
+    - 'hero': Impacto bruto, centrado, tipografia gigante.
+    - 'bento': Organização moderna de múltiplos dados/benefícios.
+    - 'card': Destaque de produto/serviço com profundidade 3D.
+    - 'feature-list': Lista de benefícios com ícones de autoridade.
+    - 'gallery': Narrativa visual cinematográfica.
+    - 'timeline': Processo passo-a-passo estratégico.
+    - 'split': O equilíbrio perfeito entre texto e conceito visual.
+    
+    INSTRUÇÕES TÉCNICAS:
+    - FORMATO DO VÍDEO: ${format} (Stories 9:16 ou Wide 16:9).
+    - STORY_BATCH: ${isStoryBatch ? "ON - Cada cena deve ser um gancho viral independente." : "OFF - Fluxo contínuo cinematográfico."}
+    - SAFE ZONES: Centralize elementos críticos. Em 9:16, ignore os 15% superiores e inferiores.
+    
+    PESQUISA OBRIGATÓRIA:
+    Use a ferramenta Google Search para enriquecer a 'subtext' com dados reais, estatísticas de mercado ou ganchos psicológicos sobre o tópico fornecido.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: script,
+      model: "gemini-1.5-flash",
+      contents: [{ role: 'user', parts: [{ text: script }] }],
       config: {
         systemInstruction,
         responseMimeType: "application/json",
@@ -121,10 +127,10 @@ export async function generateDesignBlueprint(
   } catch (err: any) {
     const errorMsg = err.message || String(err);
     if (errorMsg.includes("429") || errorMsg.includes("RESOURCE_EXHAUSTED")) {
-      throw new Error("COTA_EXCEDIDA: Esta chave (ou este IP) atingiu o limite de requisições. Tente novamente em 1 minuto ou gere uma chave em uma nova conta/projeto Google.");
+      throw new Error("COTA_EXCEDIDA: Limite de requisições atingido. Isso acontece quando muitas pessoas usam a mesma rede ou sua chave atingiu o limite gratuito. Tente novamente em 1 minuto ou gere uma chave em uma CONTA GOOGLE DIFERENTE.");
     }
     if (errorMsg.includes("403") || errorMsg.includes("PERMISSION_DENIED")) {
-      throw new Error("ERRO_PERMISSAO: Sua chave API não tem permissão para usar este modelo ou recurso. Verifique se o Gemini 3 Flash está habilitado no seu Google AI Studio.");
+      throw new Error("ERRO_PERMISSAO: Sua chave API não tem permissão para usar este modelo. Verifique se o Gemini 1.5 Flash está habilitado e se a chave está ativa.");
     }
     throw new Error(`ERRO_API: ${errorMsg}`);
   }

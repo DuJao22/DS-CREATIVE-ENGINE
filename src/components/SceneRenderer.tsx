@@ -330,19 +330,50 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className={cn(
-        "relative w-full h-full flex flex-col overflow-hidden perspective-1000",
+        "relative w-full h-full flex flex-col overflow-hidden transform-style-3d",
         layoutClasses
       )}
       style={{ 
         backgroundColor: colors.background, 
-        fontFamily: scene.fontFamily || fontFamily 
+        fontFamily: scene.fontFamily || fontFamily,
+        perspective: "2000px"
       }}
     >
-      {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-accent/10 blur-[150px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[150px] rounded-full" />
-        {mode === 'NEON_TECH' && <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px]" />}
+      {/* Cinematic Overlays */}
+      <div className="absolute inset-0 pointer-events-none z-[100] overflow-hidden">
+        {/* Fine Grain Texture */}
+        <div className="absolute inset-0 opacity-[0.05] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+        
+        {/* Dynamic Light Leaks */}
+        <motion.div 
+          animate={{ 
+            opacity: [0.05, 0.15, 0.05],
+            x: ["-20%", "20%", "-20%"],
+            rotate: [0, 5, 0]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-gradient-radial from-accent/10 via-transparent to-transparent blur-[120px]"
+        />
+
+        {/* Global Vignette */}
+        <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.9)]" />
+      </div>
+
+      {/* Abstract Atmosphere */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-accent/20 blur-[180px] rounded-full" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 12, repeat: Infinity, delay: 1 }}
+          className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-primary/10 blur-[200px] rounded-full" 
+        />
+        {mode === 'NEON_TECH' && (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+        )}
       </div>
 
       {scene.backgroundEmoji && (
@@ -350,10 +381,10 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
           animate={{ 
             y: [-20, 20], 
             rotate: [-5, 5],
-            scale: [1, 1.05, 1]
+            scale: [1, 1.1, 1]
           }}
-          transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", repeatType: "reverse" }}
-          className="absolute text-[200px] md:text-[300px] opacity-10 filter blur-[2px] -z-0 grayscale"
+          transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", repeatType: "reverse" }}
+          className="absolute text-[200px] md:text-[350px] opacity-[0.08] filter blur-[4px] -z-0 grayscale flex items-center justify-center inset-0"
         >
           {scene.backgroundEmoji}
         </motion.div>
@@ -363,9 +394,8 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
         {renderLayout()}
       </div>
 
-      {/* Mode Finishes */}
-      {mode === 'DARK_LUXURY' && <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 pointer-events-none" />}
-      {mode === 'ULTRA_VIRAL' && <div className="absolute inset-0 border-[32px] border-accent/20 pointer-events-none" />}
+      {/* Finishing Frame */}
+      <div className="absolute inset-4 sm:inset-6 border border-white/5 rounded-[40px] md:rounded-[60px] pointer-events-none z-[110] shadow-[inset_0_0_30px_rgba(255,255,255,0.01)]" />
     </motion.div>
   );
 }
