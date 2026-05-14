@@ -14,14 +14,22 @@ export function SettingsModal({ onClose, onSave, currentKey }: SettingsModalProp
   const [isVerifying, setIsVerifying] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+
   const handleVerify = async () => {
     if (!apiKey) return;
     setIsVerifying(true);
     setStatus('idle');
-    const isValid = await verifyApiKey(apiKey);
-    setStatus(isValid ? 'success' : 'error');
-    if (isValid) {
-      onSave(apiKey);
+    setErrorDetails(null);
+    
+    const result = await verifyApiKey(apiKey);
+    
+    if (result.valid) {
+      setStatus('success');
+      onSave(apiKey.trim());
+    } else {
+      setStatus('error');
+      setErrorDetails(result.error || "Erro desconhecido ao verificar chave.");
     }
     setIsVerifying(false);
   };
@@ -104,6 +112,13 @@ export function SettingsModal({ onClose, onSave, currentKey }: SettingsModalProp
               'Verificar e Salvar'
             )}
           </button>
+
+          {errorDetails && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex gap-2">
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <p className="text-[10px] text-red-400 font-bold leading-tight">{errorDetails}</p>
+            </div>
+          )}
 
           <p className="text-[9px] text-white/30 text-center leading-relaxed">
             Sua chave é salva apenas localmente no seu navegador.<br/>

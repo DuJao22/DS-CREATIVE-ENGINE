@@ -2,21 +2,31 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DesignBlueprint, DesignMode, VideoFormat } from "../types";
 
 export function getAiInstance(customKey?: string) {
-  const apiKey = customKey || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : null);
+  const apiKey = customKey?.trim() || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY?.trim() : null);
   return apiKey ? new GoogleGenAI({ apiKey }) : null;
 }
 
-export async function verifyApiKey(key: string): Promise<boolean> {
+export async function verifyApiKey(key: string): Promise<{ valid: boolean; error?: string }> {
   try {
-    const ai = new GoogleGenAI({ apiKey: key });
+    const trimmedKey = key.trim();
+    if (!trimmedKey) return { valid: false, error: "Chave vazia" };
+    
+    const ai = new GoogleGenAI({ apiKey: trimmedKey });
     await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-3-flash-preview",
       contents: [{ role: 'user', parts: [{ text: "ping" }] }]
     });
-    return true;
-  } catch (err) {
+    return { valid: true };
+  } catch (err: any) {
     console.error("API Key verification failed:", err);
-    return false;
+    const msg = err.message || String(err);
+    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
+      return { valid: false, error: "COTA_EXCEDIDA: Limite de requisições atingido. Tente em 1 minuto." };
+    }
+    if (msg.includes("403") || msg.includes("API_KEY_INVALID") || msg.includes("INVALID_ARGUMENT")) {
+      return { valid: false, error: "CHAVE_INVALIDA: Verifique se copiou a chave corretamente." };
+    }
+    return { valid: false, error: msg };
   }
 }
 
@@ -69,7 +79,7 @@ export async function generateDesignBlueprint(
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-3-flash-preview",
       contents: [{ role: 'user', parts: [{ text: script }] }],
       config: {
         systemInstruction,
