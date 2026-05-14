@@ -10,8 +10,8 @@ export async function verifyApiKey(key: string): Promise<boolean> {
   try {
     const ai = new GoogleGenAI({ apiKey: key });
     await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: [{ role: 'user', parts: [{ text: "Keep this short: ping" }] }]
+      model: "gemini-3-flash-preview",
+      contents: "ping"
     });
     return true;
   } catch (err) {
@@ -51,8 +51,8 @@ export async function generateDesignBlueprint(
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: [{ role: 'user', parts: [{ text: script }] }],
+      model: "gemini-3-flash-preview",
+      contents: script,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
@@ -112,7 +112,7 @@ export async function generateDesignBlueprint(
       throw new Error("COTA_EXCEDIDA: Esta chave (ou este IP) atingiu o limite de requisições. Tente novamente em 1 minuto ou gere uma chave em uma nova conta/projeto Google.");
     }
     if (errorMsg.includes("403") || errorMsg.includes("PERMISSION_DENIED")) {
-      throw new Error("ERRO_PERMISSAO: Sua chave API não tem permissão para usar este modelo ou recurso. Verifique se o Gemini 1.5 Flash está habilitado no seu Google AI Studio.");
+      throw new Error("ERRO_PERMISSAO: Sua chave API não tem permissão para usar este modelo ou recurso. Verifique se o Gemini 3 Flash está habilitado no seu Google AI Studio.");
     }
     throw new Error(`ERRO_API: ${errorMsg}`);
   }
