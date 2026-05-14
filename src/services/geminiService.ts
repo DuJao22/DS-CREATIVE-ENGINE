@@ -11,8 +11,8 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
   const trimmedKey = key.trim();
   if (!trimmedKey) return { valid: false, error: "Chave vazia" };
 
-  // Models to try in order of preference (modern 3 series)
-  const testModels = ["gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-flash-latest"];
+  // Models to try in order of preference
+  const testModels = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
   let lastError: any = null;
 
   for (const modelName of testModels) {
@@ -108,16 +108,21 @@ export async function generateDesignBlueprint(
     - FORMATO DO VÍDEO: ${format} (Stories 9:16 ou Wide 16:9).
     - STORY_BATCH: ${isStoryBatch ? "ON - Cada cena deve ser um gancho viral independente." : "OFF - Fluxo contínuo cinematográfico."}
     - SAFE ZONES: Centralize elementos críticos. Em 9:16, ignore os 15% superiores e inferiores.
+    - ECONOMIA: Gere entre 5 a 15 cenas no máximo. Seja conciso no JSON.
   `;
 
-  const modelsToTry = ["gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-flash-latest"];
+  const modelsToTry = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b"];
   let lastError: any = null;
+
+  const sanitizedScript = script.substring(0, 15000);
+  console.log(`Starting generation with mode: ${mode}, format: ${format}`);
 
   for (const modelName of modelsToTry) {
     try {
+      console.log(`Trying model: ${modelName}...`);
       const response = await ai.models.generateContent({
         model: modelName,
-        contents: script,
+        contents: sanitizedScript,
         config: {
           systemInstruction,
           responseMimeType: "application/json",
@@ -179,19 +184,32 @@ export async function generateDesignBlueprint(
         }
       });
 
+      console.log(`Response received from ${modelName}`);
       const text = response.text;
-      if (!text) throw new Error("Could not generate blueprint");
+      if (!text) throw new Error("A API retornou uma resposta vazia.");
       
-      return JSON.parse(text) as DesignBlueprint;
+      try {
+        const parsed = JSON.parse(text);
+        console.log("Blueprint generated successfully");
+        return parsed as DesignBlueprint;
+      } catch (parseErr: any) {
+        console.error("JSON Parse Error. Data length:", text.length, "Preview:", text.substring(0, 200));
+        throw new Error(`ERRO_FORMATO: A resposta da IA veio incompleta ou malformada. Tente usar um roteiro mais curto.`);
+      }
     } catch (err: any) {
       lastError = err;
       const msg = err.message || String(err);
+      console.error(`Error with model ${modelName}:`, msg);
       
+      // If it's a format error, we don't try other models (it's likely the prompt/input issue)
+      if (msg.includes("ERRO_FORMATO")) {
+        break;
+      }
+
       // If it's not a 404, we don't try other models (likely a different error like quota or content filter)
       if (!msg.includes("404") && !msg.includes("not found")) {
         break;
       }
-      console.warn(`Model ${modelName} not found, trying next...`);
     }
   }
 

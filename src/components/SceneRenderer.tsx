@@ -61,12 +61,12 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
     switch (scene.layoutType) {
       case 'hero':
         return (
-          <div className="flex flex-col items-center text-center max-w-full px-4 gap-6 transform-style-3d">
+          <div className="flex flex-col items-center text-center max-w-full px-4 gap-4 transform-style-3d">
             <motion.div
               initial={{ opacity: 0, y: -20, rotateX: -20 }}
               animate={{ opacity: 1, y: 0, rotateX: 0 }}
               transition={{ delay: 0.1, duration: 1 }}
-              className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[9px] font-black tracking-[0.3em] uppercase text-white/50 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+              className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[8px] font-black tracking-[0.3em] uppercase text-white/50 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
             >
               DS CREATIVE • GEN
             </motion.div>
@@ -74,7 +74,7 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
               initial={{ opacity: 0, z: 100, rotateX: 20 }}
               animate={{ opacity: 1, z: 0, rotateX: 0 }}
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-3xl sm:text-4xl font-black drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] uppercase italic tracking-tighter"
+              className="text-2xl sm:text-3xl font-black drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] uppercase italic tracking-tighter"
             >
               {renderText(scene.text)}
             </motion.h1>
@@ -83,7 +83,7 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="text-xs sm:text-sm px-4 opacity-70 font-medium"
+                className="text-[10px] sm:text-xs px-4 opacity-70 font-medium leading-tight mb-2"
               >
                 {renderText(scene.subtext, false)}
               </motion.p>
@@ -93,7 +93,7 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
                 initial={{ opacity: 0, scale: 0.8, z: -50 }}
                 animate={{ opacity: 1, scale: 1, z: 0 }}
                 transition={{ delay: 1.2, type: "spring" }}
-                className="mt-6 px-8 py-4 rounded-full font-black uppercase tracking-[0.2em] text-[9px] flex items-center gap-3 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] bg-gradient-to-r from-accent to-accent/80 hover:brightness-110 active:scale-95 transition-all preserve-3d"
+                className="mt-2 px-6 py-3 rounded-full font-black uppercase tracking-[0.2em] text-[8px] flex items-center gap-2 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] bg-gradient-to-r from-accent to-accent/80 hover:brightness-110 active:scale-95 transition-all preserve-3d"
                 style={{ backgroundColor: colors.accent, color: colors.background }}
               >
                 <span className="translate-z-10">{scene.ctaText}</span> <ArrowRight className="w-3 h-3 translate-z-10" />
@@ -239,19 +239,19 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
 
       case 'timeline':
         return (
-          <div className="flex flex-col md:flex-row items-center gap-10 md:gap-20 w-full max-w-5xl px-6 md:px-16 transform-style-3d">
+          <div className="flex flex-col items-center gap-6 w-full max-w-5xl px-4 transform-style-3d overflow-y-auto no-scrollbar py-12">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, z: -50 }}
               animate={{ opacity: 1, scale: 1, z: 0 }}
               transition={{ duration: 1 }}
-              className="flex-1 text-center md:text-left space-y-4 translate-z-40"
+              className="text-center space-y-2 translate-z-40"
             >
-              <h2 className="text-4xl sm:text-5xl md:text-8xl font-black leading-[0.95] italic tracking-tighter drop-shadow-2xl">{renderText(scene.text)}</h2>
-              <p className="text-base sm:text-lg md:text-2xl opacity-50 font-bold max-w-md mx-auto md:mx-0 leading-tight">{scene.subtext}</p>
+              <h2 className="text-2xl sm:text-3xl font-black leading-none italic tracking-tighter drop-shadow-2xl uppercase">{renderText(scene.text)}</h2>
+              <p className="text-[10px] sm:text-xs opacity-50 font-bold max-w-xs mx-auto leading-tight uppercase">{scene.subtext}</p>
             </motion.div>
-            <div className="flex-1 relative w-full pt-10 md:pt-0 transform-style-3d">
-              <div className="absolute left-[23px] md:left-[31px] top-4 bottom-4 w-[2px] bg-white/5" />
-              <div className="space-y-8 md:space-y-16 transform-style-3d text-left">
+            <div className="relative w-full transform-style-3d">
+              <div className="absolute left-[19px] top-4 bottom-4 w-[1px] bg-white/10" />
+              <div className="space-y-6 transform-style-3d text-left">
                 {(scene.listItems || [
                   { title: "Strategic Step", id: "1" },
                   { title: "Strategic Step", id: "2" },
@@ -259,18 +259,18 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
                 ]).map((item, i) => (
                   <motion.div
                     key={item.id || i}
-                    initial={{ x: 100, opacity: 0, rotateY: -20 }}
+                    initial={{ x: 50, opacity: 0, rotateY: -20 }}
                     animate={{ x: 0, opacity: 1, rotateY: 0 }}
                     transition={{ delay: 0.8 + i * 0.2, ease: [0.16, 1, 0.3, 1], duration: 0.8 }}
-                    className="flex gap-4 md:gap-10 relative group transform-style-3d"
+                    className="flex gap-4 relative group transform-style-3d"
                   >
-                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-3xl border-2 border-accent bg-background shadow-[0_0_40px_rgba(255,255,255,0.05)] flex items-center justify-center font-black text-accent text-sm md:text-xl z-20 shrink-0 group-hover:scale-110 group-hover:bg-accent group-hover:text-background transition-all duration-500 translate-z-20">
+                    <div className="w-10 h-10 rounded-2xl border border-accent bg-background shadow-lg flex items-center justify-center font-black text-accent text-xs z-20 shrink-0 group-hover:bg-accent group-hover:text-background transition-all duration-500 translate-z-20">
                       {i + 1}
                     </div>
-                    <div className="pt-2 md:pt-4 translate-z-10">
-                      <div className="font-black uppercase tracking-[0.25em] text-[8px] md:text-[11px] text-accent/60 mb-2">Tópico 0{i+1}</div>
-                      <div className="text-sm sm:text-base md:text-2xl font-black italic opacity-90 leading-tight tracking-tight uppercase">{item.title}</div>
-                      {item.description && <p className="text-[10px] md:text-sm mt-2 opacity-50 font-bold max-w-xs">{item.description}</p>}
+                    <div className="pt-1 translate-z-10">
+                      <div className="font-black uppercase tracking-[0.25em] text-[7px] text-accent/60 mb-1">Tópico 0{i+1}</div>
+                      <div className="text-xs sm:text-sm font-black italic opacity-90 leading-tight tracking-tight uppercase">{item.title}</div>
+                      {item.description && <p className="text-[9px] mt-1 opacity-50 font-bold leading-tight line-clamp-2">{item.description}</p>}
                     </div>
                   </motion.div>
                 ))}
