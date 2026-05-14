@@ -23,13 +23,13 @@ export function NotificationSystem() {
     return () => clearInterval(interval);
   }, []);
 
-  // Course CTA: every 10 seconds
+  // Course CTA: Show once after 10 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
+    const timer = setTimeout(() => {
       setShowCourse(true);
     }, 10000);
 
-    return () => clearInterval(interval);
+    return () => clearTimeout(timer);
   }, []);
 
   return (

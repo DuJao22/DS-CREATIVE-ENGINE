@@ -246,7 +246,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {!blueprint && !isGenerating && <NotificationSystem />}
+      {!blueprint && !isGenerating && !isHistoryOpen && <NotificationSystem />}
     </div>
   );
 }
