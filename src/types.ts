@@ -16,6 +16,13 @@ export type DesignMode =
   | 'DARK_LUXURY' 
   | 'NEON_TECH';
 
+export interface ListItem {
+  id: string;
+  title: string;
+  description?: string;
+  icon?: string;
+}
+
 export interface Scene {
   id: string;
   text: string;
@@ -31,6 +38,7 @@ export interface Scene {
   fontFamily?: string;
   color?: string;
   ctaText?: string;
+  listItems?: ListItem[];
 }
 
 export interface DesignBlueprint {

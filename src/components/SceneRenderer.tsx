@@ -178,22 +178,30 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
               <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">{scene.subtext}</p>
             </motion.div>
             <div className="w-full space-y-3 transform-style-3d">
-              {[Zap, Shield, Target].map((Icon, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ x: 50, opacity: 0, z: -50 }}
-                  animate={{ x: 0, opacity: 1, z: 0 }}
-                  transition={{ delay: 0.8 + i * 0.15, ease: "circOut", duration: 0.8 }}
-                  className="flex items-center gap-4 p-4 rounded-[16px] glass border-white/5 hover:border-accent/40 bg-white/5 transition-all group overflow-hidden relative shadow-xl transform-style-3d"
-                >
-                  <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform translate-z-20">
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="relative z-10 translate-z-10">
-                    <div className="font-black text-xs italic tracking-tight uppercase">High End Standard</div>
-                  </div>
-                </motion.div>
-              ))}
+              {(scene.listItems || [
+                { title: "Standard Quality", id: "1" },
+                { title: "Standard Quality", id: "2" },
+                { title: "Standard Quality", id: "3" }
+              ]).map((item, i) => {
+                const Icon = IconMap[item.icon || "Zap"] || Zap;
+                return (
+                  <motion.div
+                    key={item.id || i}
+                    initial={{ x: 50, opacity: 0, z: -50 }}
+                    animate={{ x: 0, opacity: 1, z: 0 }}
+                    transition={{ delay: 0.8 + i * 0.15, ease: "circOut", duration: 0.8 }}
+                    className="flex items-center gap-4 p-4 rounded-[16px] glass border-white/5 hover:border-accent/40 bg-white/5 transition-all group overflow-hidden relative shadow-xl transform-style-3d text-left"
+                  >
+                    <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform translate-z-20">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="relative z-10 translate-z-10">
+                      <div className="font-black text-xs italic tracking-tight uppercase">{item.title}</div>
+                      {item.description && <div className="text-[8px] opacity-40 font-bold uppercase truncate max-w-[150px]">{item.description}</div>}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         );
@@ -243,10 +251,14 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
             </motion.div>
             <div className="flex-1 relative w-full pt-10 md:pt-0 transform-style-3d">
               <div className="absolute left-[23px] md:left-[31px] top-4 bottom-4 w-[2px] bg-white/5" />
-              <div className="space-y-8 md:space-y-16 transform-style-3d">
-                {[1, 2, 3].map((_, i) => (
+              <div className="space-y-8 md:space-y-16 transform-style-3d text-left">
+                {(scene.listItems || [
+                  { title: "Strategic Step", id: "1" },
+                  { title: "Strategic Step", id: "2" },
+                  { title: "Strategic Step", id: "3" }
+                ]).map((item, i) => (
                   <motion.div
-                    key={i}
+                    key={item.id || i}
                     initial={{ x: 100, opacity: 0, rotateY: -20 }}
                     animate={{ x: 0, opacity: 1, rotateY: 0 }}
                     transition={{ delay: 0.8 + i * 0.2, ease: [0.16, 1, 0.3, 1], duration: 0.8 }}
@@ -256,8 +268,9 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
                       {i + 1}
                     </div>
                     <div className="pt-2 md:pt-4 translate-z-10">
-                      <div className="font-black uppercase tracking-[0.25em] text-[8px] md:text-[11px] text-accent/60 mb-2">Milestone 0{i+1}</div>
-                      <div className="text-sm sm:text-base md:text-2xl font-black italic opacity-90 leading-tight tracking-tight">Strategic Implementation Phase</div>
+                      <div className="font-black uppercase tracking-[0.25em] text-[8px] md:text-[11px] text-accent/60 mb-2">Tópico 0{i+1}</div>
+                      <div className="text-sm sm:text-base md:text-2xl font-black italic opacity-90 leading-tight tracking-tight uppercase">{item.title}</div>
+                      {item.description && <p className="text-[10px] md:text-sm mt-2 opacity-50 font-bold max-w-xs">{item.description}</p>}
                     </div>
                   </motion.div>
                 ))}

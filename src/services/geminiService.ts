@@ -91,19 +91,17 @@ export async function generateDesignBlueprint(
     
     AUTORIDADE VISUAL (ESTILO "DS COMPANY"):
     1. HIERARQUIA VISUAL: O texto principal ('text') é a sua manchete. Deve ser curto, mas fiel ao conteúdo original.
-    2. NARRATIVA COMPLEMENTAR: O 'subtext' deve conter detalhes técnicos, explicações or instruções adicionais que estavam no roteiro mas que poluiriam o 'text' principal.
-    3. DESIGN GENERATIVO: Sua maior função é selecionar a combinação PERFEITA de Layout, Animação e Impacto para cada trecho do texto.
-    4. PALETAS DE CORES: Selecione cores HEX que transmitam autoridade. Exemplos:
-       - Dark Luxury: Deepest Blacks (#050505), Pure Gold (#D4AF37), Chrome Silver (#E5E5E5).
-       - Tech/Neon: Deepest Blue (#020617), Electric Indigo (#818CF8), Cyan Glow (#22D3EE).
-    5. TIPOGRAFIA: Sugira fontes premium baseadas no tema (Inter para Tech, Playfair para Luxo, Outfit para Moderno).
+    2. NARRATIVA COMPLEMENTAR: O 'subtext' deve conter detalhes técnicos, explicações ou instruções adicionais.
+    3. ESTRUTURA DE LISTA: Se você usar o layout 'timeline' ou 'feature-list', você DEVE preencher o array 'listItems' com itens extraídos do roteiro. Cada item deve ter um 'title' (impactante) e uma 'description' (explicativa/detalhada). Use no mínimo 3 itens se o conteúdo permitir.
+    4. DESIGN GENERATIVO: Selecione a combinação PERFEITA de Layout, Animação e Impacto para cada trecho do texto.
+    5. PALETAS DE CORES: Selecione cores HEX que transmitam autoridade. Extremamente importante usar preto puro (#000000) ou quase preto (#050505) como background em temas Luxury/Dark.
     
     LAYOUTS ESTRATÉGICOS:
     - 'hero': Para frases de impacto ou títulos principais.
-    - 'timeline': OBRIGATÓRIO para tutoriais ou processos passo-a-passo.
-    - 'bento': Para mostrar múltiplos recursos ou benefícios simultaneamente.
-    - 'card': Para destacar um produto, botão ou elemento central.
-    - 'feature-list': Para listas de vantagens.
+    - 'timeline': OBRIGATÓRIO para tutoriais, processos passo-a-passo ou listas de tópicos numerados (1, 2, 3).
+    - 'feature-list': Para listar benefícios ou características técnicas.
+    - 'bento': Para mostrar múltiplos recursos simultaneamente.
+    - 'card': Para destacar um produto ou elemento central.
     - 'split': Equilíbrio visual entre texto longo e foco em palavra-chave.
     
     INSTRUÇÕES TÉCNICAS:
@@ -158,7 +156,20 @@ export async function generateDesignBlueprint(
                     layoutType: { type: Type.STRING, enum: ["centered", "top", "bottom", "split", "bento", "hero", "card", "feature-list", "gallery", "timeline"] },
                     impact: { type: Type.STRING, enum: ["low", "medium", "high"] },
                     backgroundEmoji: { type: Type.STRING },
-                    ctaText: { type: Type.STRING }
+                    ctaText: { type: Type.STRING },
+                    listItems: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        required: ["id", "title"],
+                        properties: {
+                          id: { type: Type.STRING },
+                          title: { type: Type.STRING },
+                          description: { type: Type.STRING },
+                          icon: { type: Type.STRING }
+                        }
+                      }
+                    }
                   }
                 }
               },
