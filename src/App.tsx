@@ -31,6 +31,16 @@ export default function App() {
   }, []);
 
   const saveToHistory = async (bp: DesignBlueprint) => {
+    // 1. Save to LocalStorage (Fallback)
+    try {
+      const localHistory = JSON.parse(localStorage.getItem('creatives_history') || '[]');
+      const updatedLocal = [bp, ...localHistory].slice(0, 50); // limit to 50
+      localStorage.setItem('creatives_history', JSON.stringify(updatedLocal));
+    } catch (e) {
+      console.warn("LocalStorage save failed", e);
+    }
+
+    // 2. Save to DB (Primary)
     try {
       await fetch("/api/history", {
         method: "POST",
@@ -42,7 +52,7 @@ export default function App() {
         })
       });
     } catch (err) {
-      console.error("Failed to save history", err);
+      console.error("Failed to save history to DB", err);
     }
   };
 

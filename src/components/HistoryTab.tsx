@@ -13,12 +13,35 @@ export function HistoryTab({ onSelect, onClose }: HistoryTabProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchHistory = async () => {
+    let combinedHistory: any[] = [];
+    
+    // 1. Get from LocalStorage first (instant)
+    try {
+      const local = JSON.parse(localStorage.getItem('creatives_history') || '[]');
+      combinedHistory = local.map((bp: DesignBlueprint) => ({
+        id: bp.id,
+        name: bp.scenes[0].text,
+        data: bp,
+        createdAt: new Date().toISOString(), // approximation
+        isLocal: true
+      }));
+      setHistory(combinedHistory);
+    } catch (e) {
+      console.warn("Local fetch failed", e);
+    }
+
+    // 2. Get from DB and merge
     try {
       const res = await fetch("/api/history");
-      const data = await res.json();
-      setHistory(data);
+      if (res.ok) {
+        const dbData = await res.json();
+        // Simple merge: keep DB as source of truth if IDs match
+        const dbIds = new Set(dbData.map((h: any) => h.id));
+        const filteredLocal = combinedHistory.filter(h => !dbIds.has(h.id));
+        setHistory([...dbData, ...filteredLocal]);
+      }
     } catch (err) {
-      console.error(err);
+      console.warn("API history fetch failed (Vercel/Offline mode)");
     } finally {
       setLoading(false);
     }
@@ -30,11 +53,22 @@ export function HistoryTab({ onSelect, onClose }: HistoryTabProps) {
 
   const deleteItem = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // 1. Delete from LocalStorage
+    try {
+      const local = JSON.parse(localStorage.getItem('creatives_history') || '[]');
+      const filtered = local.filter((h: DesignBlueprint) => h.id !== id);
+      localStorage.setItem('creatives_history', JSON.stringify(filtered));
+      setHistory(prev => prev.filter(h => h.id !== id));
+    } catch (e) {
+      console.warn("Local delete failed", e);
+    }
+
+    // 2. Delete from DB
     try {
       await fetch(`/api/history/${id}`, { method: "DELETE" });
-      setHistory(prev => prev.filter(h => h.id !== id));
     } catch (err) {
-      console.error(err);
+      console.warn("API delete failed (Vercel mode)");
     }
   };
 

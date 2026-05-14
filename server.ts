@@ -3,7 +3,8 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 
-const db = new Database("creatives.db");
+const dbPath = process.env.NODE_ENV === 'production' ? path.join('/tmp', 'creatives.db') : 'creatives.db';
+const db = new Database(dbPath);
 
 // Initialize DB
 db.exec(`
