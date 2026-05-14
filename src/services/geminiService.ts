@@ -31,49 +31,46 @@ export async function generateDesignBlueprint(
   if (!ai) {
     throw new Error("GEMINI_API_KEY não configurada. Adicione sua chave nas configurações.");
   }
-  const prompt = `
-    Transform the following video script into a professional animated creative blueprint.
+  
+  const systemInstruction = `
+    You are a world-class researcher and Creative Director at a top-tier design agency.
+    Your goal is to transform a script or topic into a professional animated creative blueprint.
     
-    SCRIPT:
-    ${script}
-    
-    MODE: ${mode}
-    FORMAT: ${format}
     STORY_BATCH_MODE: ${isStoryBatch ? "ON - Each scene should be a complete independent hook/take for a single story post." : "OFF - Continuous video flow."}
+    VIDEO_FORMAT: ${format} (Ensure all elements fit within this aspect ratio and safe zones).
     
     INSTRUCTIONS:
-    1. Divide the script into logical scenes (3-7 scenes).
-    2. Act as a world-class UI/UX Motion Designer (Apple/Vercel style).
-    3. For each scene, choose a sophisticated layoutType:
-       - 'hero': Large headline, subtext, and clear visual hierarchy.
-       - 'bento': Modern grid-like layout for feature highlights.
-       - 'card': Clean floating card elements with high shadows.
-       - 'feature-list': Clean list of benefits with icons (emoji).
-       - 'gallery': A 3-column masonry/grid style for visual variety.
-       - 'timeline': A structured vertical journey or step-by-step flow.
-       - 'split': Professional 50/50 balance.
-    4. Provide a 'subtext' that complements the main 'text' for richer storytelling.
-    5. High-impact scenes should use 'stagger' or 'blur-reveal'.
-    6. Ensure colors are highly sophisticated and contrast well.
-    7. Each scene should feel like a perfectly designed landing page section.
-    ${isStoryBatch ? "8. Each scene must be a complete, independent high-converting story post." : ""}
-    
-    The output must strictly follow the DesignBlueprint schema.
-    IMPORTANT: Provide a unique "id" for the blueprint (random string).
+    1. RESEARCH & EXPAND: If the user provided a brief topic, research it using Google Search to find relevant facts, emotions, and professional context. Enrich the script with this knowledge to create deeper storytelling.
+    2. SCENE DIVISION: Divide the content into 3-7 logical scenes.
+    3. VISUAL HIERARCHY: Each scene must look like a high-end landing page. Use layoutTypes: 'hero', 'bento', 'card', 'feature-list', 'gallery', 'timeline', 'split', 'centered', 'top', 'bottom'.
+    4. COLOR THEORY & CONTRAST: Select sophisticated hex colors. You MUST ensure AA/AAA contrast ratios between text and background. 
+       - Background should be dark for DARK_LUXURY/NEON_TECH.
+       - Accents should pop but remain legible.
+    5. FRAMING & SAFE ZONES: 
+       - For 9:16 (Stories): Avoid placing critical text in the top 15% and bottom 15% (where UI overlays typically appear).
+       - Ensure text is centered and doesn't get cut off by screen edges.
+    6. MOTION DESIGN: Use 'stagger' or 'blur-reveal' for high-impact scenes.
+    7. SUBTEXT: Provide a 'subtext' that complements the main 'text' for richer storytelling.
+    8. Each scene should have a unique 'backgroundEmoji' that fits the context discovered in your research.
+    ${isStoryBatch ? "9. Ensure each scene is a self-contained, high-converting story post." : ""}
   `;
 
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: prompt,
+    contents: script,
     config: {
+      systemInstruction,
       responseMimeType: "application/json",
+      tools: [{ googleSearch: {} }],
+      toolConfig: { includeServerSideToolInvocations: true },
       responseSchema: {
         type: Type.OBJECT,
         required: ["id", "mode", "format", "scenes", "colors", "fontFamily"],
         properties: {
           id: { type: Type.STRING },
-          mode: { type: Type.STRING },
-          format: { type: Type.STRING },
+          name: { type: Type.STRING },
+          mode: { type: Type.STRING, enum: ["ULTRA_VIRAL", "MINIMALIST", "CINEMATIC", "DARK_LUXURY", "NEON_TECH"] },
+          format: { type: Type.STRING, enum: ["9:16", "16:9"] },
           fontFamily: { type: Type.STRING },
           isStoryBatch: { type: Type.BOOLEAN },
           colors: {
