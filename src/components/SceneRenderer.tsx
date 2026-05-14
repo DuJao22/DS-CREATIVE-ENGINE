@@ -26,17 +26,17 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
       return (
         <motion.span
           key={i}
-          initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+          initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ 
-            delay: i * 0.08 + (isHeadline ? 0.2 : 0.5), 
-            duration: 0.6,
-            ease: [0.21, 0.47, 0.32, 0.98] 
+            delay: i * 0.06 + (isHeadline ? 0.2 : 0.4), 
+            duration: 0.8,
+            ease: [0.16, 1, 0.3, 1] 
           }}
           className={cn(
-            "inline-block mr-[0.2em]",
-            isHeadline ? "font-black tracking-tighter" : "font-medium opacity-80",
-            isHighlighted && isHeadline && "text-accent relative"
+            "inline-block mr-[0.25em] transition-colors duration-500",
+            isHeadline ? "font-black tracking-tight leading-[1.1]" : "font-medium opacity-70 leading-relaxed",
+            isHighlighted && isHeadline && "text-accent relative z-10"
           )}
           style={{ 
             color: isHighlighted && isHeadline ? colors.accent : (isHeadline ? colors.primary : colors.secondary),
@@ -47,8 +47,8 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
             <motion.span 
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{ delay: i * 0.08 + 0.6, duration: 0.8 }}
-              className="absolute -bottom-1 left-0 w-full h-[0.1em] origin-left rounded-full opacity-50"
+              transition={{ delay: i * 0.08 + 0.6, duration: 1, ease: "circOut" }}
+              className="absolute -bottom-1 left-0 w-full h-[0.15em] origin-left rounded-full opacity-30 -z-10"
               style={{ backgroundColor: colors.accent }}
             />
           )}
@@ -57,32 +57,46 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
     });
   };
 
-  const LayoutContent = () => {
+  const renderLayout = () => {
     switch (scene.layoutType) {
       case 'hero':
         return (
-          <div className="flex flex-col items-center text-center max-w-2xl px-6 gap-6">
+          <div className="flex flex-col items-center text-center max-w-full px-4 md:px-8 gap-6 md:gap-8 transform-style-3d">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="px-4 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] font-black tracking-[0.2em] uppercase text-white/40"
+              initial={{ opacity: 0, y: -20, rotateX: -20 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{ delay: 0.1, duration: 1 }}
+              className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[9px] md:text-[11px] font-black tracking-[0.3em] uppercase text-white/50 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
             >
-              Exclusivo • 2024
+              Premium Content • 2024
             </motion.div>
-            <h1 className="text-5xl md:text-7xl leading-[0.95]">{renderText(scene.text)}</h1>
+            <motion.h1 
+              initial={{ opacity: 0, z: 100, rotateX: 20 }}
+              animate={{ opacity: 1, z: 0, rotateX: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+            >
+              {renderText(scene.text)}
+            </motion.h1>
             {scene.subtext && (
-              <p className="text-base md:text-lg max-w-lg leading-relaxed">{renderText(scene.subtext, false)}</p>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="text-sm sm:text-base md:text-xl max-w-md md:max-w-xl mx-auto opacity-70"
+              >
+                {renderText(scene.subtext, false)}
+              </motion.p>
             )}
             {scene.ctaText && (
               <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
-                className="mt-4 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-2xl transition-all hover:scale-105 active:scale-95"
+                initial={{ opacity: 0, scale: 0.8, z: -50 }}
+                animate={{ opacity: 1, scale: 1, z: 0 }}
+                transition={{ delay: 1.2, type: "spring" }}
+                className="mt-6 px-10 py-5 rounded-full font-black uppercase tracking-[0.2em] text-[10px] md:text-[12px] flex items-center gap-4 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] bg-gradient-to-r from-accent to-accent/80 hover:brightness-110 active:scale-95 transition-all preserve-3d"
                 style={{ backgroundColor: colors.accent, color: colors.background }}
               >
-                {scene.ctaText} <ArrowRight className="w-4 h-4" />
+                <span className="translate-z-10">{scene.ctaText}</span> <ArrowRight className="w-4 h-4 md:w-5 md:h-5 translate-z-10" />
               </motion.button>
             )}
           </div>
@@ -90,66 +104,99 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
 
       case 'bento':
         return (
-          <div className="grid grid-cols-2 grid-rows-2 gap-4 w-full h-full max-w-4xl p-8">
+          <div className="grid grid-cols-2 grid-rows-3 md:grid-rows-2 gap-3 md:gap-5 w-full h-full max-w-4xl p-4 md:p-10 perspective-1000 transform-style-3d">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} 
-              className="col-span-2 row-span-1 glass border-white/5 p-8 flex flex-col justify-center gap-2"
+              initial={{ opacity: 0, rotateY: -15, z: -50 }} 
+              animate={{ opacity: 1, rotateY: 0, z: 0 }} 
+              transition={{ duration: 1 }}
+              className="col-span-2 row-span-1 rounded-[24px] md:rounded-[40px] glass border-white/5 p-6 md:p-12 flex flex-col justify-center gap-3 overflow-hidden group shadow-2xl relative"
             >
-              <h2 className="text-3xl font-black italic tracking-tighter">{renderText(scene.text)}</h2>
-              {scene.subtext && <p className="text-sm opacity-60 font-medium">{scene.subtext}</p>}
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity translate-z-20">
+                <Sparkles className="w-16 h-16 md:w-24 md:h-24" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter leading-none relative z-10 translate-z-10">{renderText(scene.text)}</h2>
+              {scene.subtext && <p className="text-[10px] md:text-sm opacity-50 font-bold uppercase tracking-widest relative z-10 translate-z-5">{scene.subtext}</p>}
             </motion.div>
             <motion.div 
-              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}
-              className="col-span-1 glass border-white/5 p-6 flex items-center justify-center bg-accent/10"
+              initial={{ opacity: 0, x: -50, rotateY: 30 }} 
+              animate={{ opacity: 1, x: 0, rotateY: 0 }} 
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="col-span-1 glass border-white/5 p-4 md:p-10 rounded-[20px] md:rounded-[40px] flex items-center justify-center bg-accent/5 shadow-xl"
             >
-              <Zap className="w-12 h-12 text-accent" />
+              <div className="relative translate-z-30">
+                <div className="absolute inset-0 bg-accent/20 blur-2xl rounded-full" />
+                <Zap className="w-10 h-10 md:w-16 md:h-16 text-accent relative z-10" />
+              </div>
             </motion.div>
             <motion.div 
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}
-              className="col-span-1 glass border-white/5 p-6 flex flex-col justify-center text-center"
+              initial={{ opacity: 0, x: 50, rotateY: -30 }} 
+              animate={{ opacity: 1, x: 0, rotateY: 0 }} 
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="col-span-1 glass border-white/5 p-4 md:p-8 rounded-[20px] md:rounded-[40px] flex flex-col justify-center text-center gap-1 md:gap-2 shadow-xl"
             >
-              <div className="text-2xl font-black text-accent">+99%</div>
-              <div className="text-[10px] uppercase font-bold opacity-40">Performance</div>
+              <div className="text-xl sm:text-2xl md:text-5xl font-black text-accent tracking-tighter italic translate-z-20">TOP RANK</div>
+              <div className="text-[8px] md:text-[10px] uppercase font-black opacity-30 tracking-[0.25em] translate-z-10">Industry Leader</div>
             </motion.div>
           </div>
         );
 
       case 'card':
         return (
-          <div className="flex flex-col items-center justify-center gap-8 w-full p-6">
+          <div className="flex flex-col items-center justify-center gap-10 w-full p-6 md:p-12 perspective-2000 transform-style-3d">
             <motion.div
-              initial={{ y: 40, opacity: 0, rotateX: 20 }}
-              animate={{ y: 0, opacity: 1, rotateX: 0 }}
-              transition={{ type: "spring", damping: 20, stiffness: 100 }}
-              className="w-full max-w-md glass border-white/10 p-10 rounded-[40px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] bg-gradient-to-br from-white/10 to-transparent"
+              initial={{ y: 100, opacity: 0, rotateX: 45, rotateY: 15, z: -200 }}
+              animate={{ y: 0, opacity: 1, rotateX: 0, rotateY: 0, z: 0 }}
+              transition={{ type: "spring", damping: 20, stiffness: 80, delay: 0.2 }}
+              whileHover={{ rotateY: 10, rotateX: -5, z: 50 }}
+              className="w-full max-w-sm glass border-white/20 p-8 md:p-14 rounded-[32px] md:rounded-[60px] shadow-[0_100px_200px_-50px_rgba(0,0,0,0.9)] relative group overflow-hidden transform-style-3d"
             >
-              <Sparkles className="w-10 h-10 text-accent mb-6" />
-              <h2 className="text-4xl font-black leading-tight mb-4">{renderText(scene.text)}</h2>
-              {scene.subtext && <p className="text-base opacity-70 leading-relaxed font-medium">{scene.subtext}</p>}
+               <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/10 blur-[80px] rounded-full group-hover:bg-accent/20 transition-colors translate-z-[-20px]" />
+               <motion.div
+                 initial={{ scale: 0 }}
+                 animate={{ scale: 1 }}
+                 transition={{ delay: 0.8, type: "spring" }}
+                 className="translate-z-50 mb-8"
+               >
+                 <Sparkles className="w-10 h-10 md:w-14 md:h-14 text-accent" />
+               </motion.div>
+               <h2 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.05] mb-6 translate-z-40 drop-shadow-lg">{renderText(scene.text)}</h2>
+               {scene.subtext && <p className="text-sm sm:text-base md:text-xl opacity-60 leading-relaxed font-semibold translate-z-20">{scene.subtext}</p>}
             </motion.div>
           </div>
         );
 
       case 'feature-list':
         return (
-          <div className="flex flex-col md:flex-row items-center gap-12 w-full max-w-5xl px-12">
-            <div className="flex-1 space-y-4">
-              <h2 className="text-5xl font-black leading-[0.9] italic tracking-tight">{renderText(scene.text)}</h2>
-              <p className="text-lg opacity-60 font-medium">{scene.subtext}</p>
-            </div>
-            <div className="flex-1 grid gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 w-full max-w-6xl px-6 md:px-12 transform-style-3d">
+            <motion.div 
+              initial={{ opacity: 0, x: -100, rotateY: 30 }}
+              animate={{ opacity: 1, x: 0, rotateY: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="flex-1 space-y-4 md:space-y-8 text-center md:text-left drop-shadow-2xl"
+            >
+              <h2 className="text-4xl sm:text-5xl md:text-8xl font-black leading-[0.9] italic tracking-tighter">{renderText(scene.text)}</h2>
+              <p className="text-base sm:text-lg md:text-2xl opacity-50 font-bold max-w-md mx-auto md:mx-0">{scene.subtext}</p>
+            </motion.div>
+            <div className="flex-1 w-full max-w-md grid gap-3 md:gap-6 transform-style-3d">
               {[Zap, Shield, Target].map((Icon, i) => (
                 <motion.div
                   key={i}
-                  initial={{ x: 30, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.8 + i * 0.15 }}
-                  className="flex items-center gap-5 p-4 rounded-2xl glass border-white/5 hover:border-white/20 transition-all group"
+                  initial={{ x: 100, opacity: 0, rotateY: -30, z: -50 }}
+                  animate={{ x: 0, opacity: 1, rotateY: 0, z: 0 }}
+                  transition={{ delay: 0.8 + i * 0.15, ease: "circOut", duration: 0.8 }}
+                  whileHover={{ x: -10, z: 40, scale: 1.02 }}
+                  className="flex items-center gap-4 md:gap-6 p-4 md:p-6 rounded-[20px] md:rounded-[32px] glass border-white/5 hover:border-accent/40 hover:bg-accent/5 transition-all group overflow-hidden relative shadow-xl transform-style-3d"
                 >
-                  <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
-                    <Icon className="w-5 h-5" />
+                  <div className="w-10 h-10 md:w-14 md:h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform shadow-lg relative z-10 translate-z-20">
+                    <Icon className="w-5 h-5 md:w-7 md:h-7" />
                   </div>
-                  <div className="font-black uppercase tracking-widest text-[10px]">Benefício 0{i+1}</div>
+                  <div className="relative z-10 translate-z-10">
+                    <div className="font-black uppercase tracking-[0.2em] text-[8px] md:text-[10px] opacity-40 mb-1">Standard 0{i+1}</div>
+                    <div className="font-black text-xs md:text-base italic tracking-tight">World Class Quality</div>
+                  </div>
+                  <div className="absolute right-[-20%] bottom-[-20%] opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                    <Icon className="w-24 h-24 md:w-32 md:h-32" />
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -158,27 +205,28 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
 
       case 'gallery':
         return (
-          <div className="flex flex-col items-center gap-12 w-full max-w-6xl px-12">
-            <div className="text-center space-y-4">
-               <h2 className="text-5xl font-black italic tracking-tighter">{renderText(scene.text)}</h2>
-               {scene.subtext && <p className="text-base opacity-60 font-medium max-w-2xl">{scene.subtext}</p>}
+          <div className="flex flex-col items-center gap-8 md:gap-16 w-full max-w-6xl px-4 md:px-12 overflow-hidden transform-style-3d">
+            <div className="text-center space-y-3 md:space-y-6 px-4 translate-z-50">
+               <h2 className="text-3xl sm:text-4xl md:text-7xl font-black italic tracking-tighter leading-none drop-shadow-2xl">{renderText(scene.text)}</h2>
+               {scene.subtext && <p className="text-[10px] sm:text-xs md:text-lg opacity-50 font-black uppercase tracking-[0.3em] max-w-2xl">{scene.subtext}</p>}
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 w-full">
+            <div className="flex md:grid grid-cols-3 gap-4 md:gap-8 w-full overflow-x-auto no-scrollbar pb-8 px-4 flex-nowrap md:flex-wrap items-center justify-center transform-style-3d">
               {[1, 2, 3].map((_, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: 0.6 + i * 0.2 }}
-                  className="aspect-[4/5] rounded-[32px] glass border-white/10 relative overflow-hidden group shadow-2xl"
+                  initial={{ opacity: 0, y: 100, rotateX: 20, z: -100 }}
+                  animate={{ opacity: 1, y: 0, rotateX: 0, z: 0 }}
+                  transition={{ delay: 0.6 + i * 0.2, type: "spring", damping: 15 }}
+                  whileHover={{ y: -20, rotateY: 5, z: 40 }}
+                  className="min-w-[75vw] md:min-w-0 aspect-[4/5] rounded-[24px] md:rounded-[50px] glass border-white/10 relative overflow-hidden group shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] flex-shrink-0 transform-style-3d"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
-                  <div className="absolute inset-0 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-700">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 opacity-90" />
+                  <div className="absolute inset-0 flex items-center justify-center text-7xl md:text-9xl group-hover:scale-110 transition-transform duration-1000 ease-out grayscale group-hover:grayscale-0 translate-z-10">
                     {scene.backgroundEmoji || '📸'}
                   </div>
-                  <div className="absolute bottom-6 left-6 z-20">
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-1">Preview 0{i+1}</div>
-                    <div className="font-bold text-sm">Visual Asset</div>
+                  <div className="absolute bottom-6 md:bottom-12 left-6 md:left-12 z-20 translate-z-30">
+                    <div className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] opacity-50 mb-2">Collection 2024</div>
+                    <div className="font-black text-sm md:text-3xl italic tracking-tighter leading-tight">Iconic Visuals</div>
                   </div>
                 </motion.div>
               ))}
@@ -188,28 +236,33 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
 
       case 'timeline':
         return (
-          <div className="flex flex-col md:flex-row items-center gap-16 w-full max-w-5xl px-12">
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-6xl font-black leading-tight italic tracking-tighter mb-4">{renderText(scene.text)}</h2>
-              <p className="text-lg opacity-60 font-medium">{scene.subtext}</p>
-            </div>
-            <div className="flex-1 relative">
-              <div className="absolute left-6 top-8 bottom-8 w-[2px] bg-white/5" />
-              <div className="space-y-12">
+          <div className="flex flex-col md:flex-row items-center gap-10 md:gap-20 w-full max-w-5xl px-6 md:px-16 transform-style-3d">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, z: -50 }}
+              animate={{ opacity: 1, scale: 1, z: 0 }}
+              transition={{ duration: 1 }}
+              className="flex-1 text-center md:text-left space-y-4 translate-z-40"
+            >
+              <h2 className="text-4xl sm:text-5xl md:text-8xl font-black leading-[0.95] italic tracking-tighter drop-shadow-2xl">{renderText(scene.text)}</h2>
+              <p className="text-base sm:text-lg md:text-2xl opacity-50 font-bold max-w-md mx-auto md:mx-0 leading-tight">{scene.subtext}</p>
+            </motion.div>
+            <div className="flex-1 relative w-full pt-10 md:pt-0 transform-style-3d">
+              <div className="absolute left-[23px] md:left-[31px] top-4 bottom-4 w-[2px] bg-white/5" />
+              <div className="space-y-8 md:space-y-16 transform-style-3d">
                 {[1, 2, 3].map((_, i) => (
                   <motion.div
                     key={i}
-                    initial={{ x: 50, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.8 + i * 0.2 }}
-                    className="flex gap-6 relative"
+                    initial={{ x: 100, opacity: 0, rotateY: -20 }}
+                    animate={{ x: 0, opacity: 1, rotateY: 0 }}
+                    transition={{ delay: 0.8 + i * 0.2, ease: [0.16, 1, 0.3, 1], duration: 0.8 }}
+                    className="flex gap-4 md:gap-10 relative group transform-style-3d"
                   >
-                    <div className="w-12 h-12 rounded-full border-2 border-accent bg-black flex items-center justify-center font-black text-accent text-sm z-10 shrink-0">
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-3xl border-2 border-accent bg-background shadow-[0_0_40px_rgba(255,255,255,0.05)] flex items-center justify-center font-black text-accent text-sm md:text-xl z-20 shrink-0 group-hover:scale-110 group-hover:bg-accent group-hover:text-background transition-all duration-500 translate-z-20">
                       {i + 1}
                     </div>
-                    <div className="pt-2">
-                      <div className="font-black uppercase tracking-widest text-[10px] text-accent mb-1">Passo {i + 1}</div>
-                      <div className="text-sm font-bold opacity-80 leading-snug">Execução estratégica em tempo real</div>
+                    <div className="pt-2 md:pt-4 translate-z-10">
+                      <div className="font-black uppercase tracking-[0.25em] text-[8px] md:text-[11px] text-accent/60 mb-2">Milestone 0{i+1}</div>
+                      <div className="text-sm sm:text-base md:text-2xl font-black italic opacity-90 leading-tight tracking-tight">Strategic Implementation Phase</div>
                     </div>
                   </motion.div>
                 ))}
@@ -218,25 +271,57 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
           </div>
         );
 
+      case 'split':
+        return (
+          <div className="flex flex-col md:grid grid-cols-2 w-full h-full transform-style-3d">
+            <motion.div 
+              initial={{ x: -100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1 }}
+              className="flex flex-col justify-center p-8 md:p-20 text-left gap-6 border-b md:border-b-0 md:border-r border-white/5 bg-black/20"
+            >
+               <h2 className="text-4xl sm:text-5xl md:text-8xl font-black italic tracking-tighter leading-[0.85] drop-shadow-2xl">{renderText(scene.text)}</h2>
+               <p className="text-sm sm:text-base md:text-xl font-bold opacity-50 leading-relaxed max-w-sm">{scene.subtext}</p>
+            </motion.div>
+            <motion.div 
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="flex items-center justify-center p-10 relative overflow-hidden bg-white/[0.01] transform-style-3d"
+            >
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-accent/5 blur-[120px] rounded-full" />
+              <motion.div 
+                animate={{ rotate: [12, -12], scale: [1, 1.1, 1] }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                className="text-[180px] md:text-[350px] grayscale opacity-10 drop-shadow-[0_50px_100px_rgba(0,0,0,0.5)] hover:grayscale-0 transition-all duration-1000 translate-z-50"
+              >
+                {scene.backgroundEmoji || '✨'}
+              </motion.div>
+            </motion.div>
+          </div>
+        );
+
       default:
         return (
-          <div className="flex flex-col items-center text-center max-w-3xl px-8 gap-4">
-             <h2 className="text-4xl md:text-6xl">{renderText(scene.text)}</h2>
-             {scene.subtext && <p className="text-sm md:text-lg opacity-60">{renderText(scene.subtext, false)}</p>}
+          <div className="flex flex-col items-center text-center max-w-4xl px-8 md:px-12 gap-6">
+             <h2 className="text-3xl sm:text-5xl md:text-8xl font-black tracking-tighter leading-[0.9]">{renderText(scene.text)}</h2>
+             {scene.subtext && <p className="text-sm sm:text-base md:text-xl opacity-60 font-medium leading-relaxed max-w-2xl">{renderText(scene.subtext, false)}</p>}
           </div>
         );
     }
   };
 
   const layoutClasses = {
-    centered: "justify-center items-center",
-    top: "justify-start pt-[15%] items-center",
-    bottom: "justify-end pb-[15%] items-center",
-    split: "justify-center items-start text-left px-12",
+    centered: "justify-center items-center text-center",
+    top: "justify-start pt-[20%] md:pt-[10%] items-center text-center",
+    bottom: "justify-end pb-[20%] md:pb-[10%] items-center text-center",
+    split: "justify-center items-stretch",
     bento: "justify-center items-center",
     hero: "justify-center items-center",
     card: "justify-center items-center",
-    'feature-list': "justify-center items-center"
+    'feature-list': "justify-center items-center",
+    gallery: "justify-center items-center",
+    timeline: "justify-center items-center"
   }[scene.layoutType];
 
   return (
@@ -274,8 +359,8 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
         </motion.div>
       )}
 
-      <div className="relative z-10 w-full flex items-center justify-center">
-        <LayoutContent />
+      <div className="relative z-10 w-full h-full flex items-center justify-center transform-style-3d">
+        {renderLayout()}
       </div>
 
       {/* Mode Finishes */}

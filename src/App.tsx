@@ -8,11 +8,37 @@ import { SettingsModal } from "./components/SettingsModal";
 import { Onboarding } from "./components/Onboarding";
 import { DesignBlueprint, DesignMode, VideoFormat } from "./types";
 import { generateDesignBlueprint } from "./services/geminiService";
-import { Sparkles, Video, Layers, Wand2, Download, Menu, X, Maximize, Settings } from "lucide-react";
+import { Sparkles, Video, Layers, Wand2, Download, Menu, X, Maximize, Settings, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function App() {
   const [blueprint, setBlueprint] = useState<DesignBlueprint | null>(null);
+  const [drafts, setDrafts] = useState<DesignBlueprint[]>([]);
+  const [showDrafts, setShowDrafts] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('creative_drafts');
+    if (saved) {
+      try {
+        setDrafts(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to load drafts", e);
+      }
+    }
+  }, []);
+
+  const saveDraft = () => {
+    if (!blueprint) return;
+    const newDrafts = [blueprint, ...drafts.filter(d => d.id !== blueprint.id)].slice(0, 5);
+    setDrafts(newDrafts);
+    localStorage.setItem('creative_drafts', JSON.stringify(newDrafts));
+    alert("Rascunho salvo com sucesso!");
+  };
+
+  const loadDraft = (d: DesignBlueprint) => {
+    setBlueprint(d);
+    setShowDrafts(false);
+  };
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -133,6 +159,14 @@ export default function App() {
           >
             <Layers className="w-4 h-4" /> <span className="hidden sm:inline">Histórico</span>
           </button>
+
+          <button 
+            onClick={() => setShowDrafts(true)}
+            className="flex items-center gap-2 px-3 py-2 lg:px-5 lg:py-3 glass rounded-full text-[10px] font-black uppercase tracking-widest text-orange-400 hover:text-white transition-all shadow-lg active:scale-95 border border-orange-500/20"
+          >
+            <Sparkles className="w-4 h-4" /> <span className="hidden sm:inline">Rascunhos</span>
+            {drafts.length > 0 && <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />}
+          </button>
           {deferredPrompt && (
             <button 
               onClick={handleInstall}
@@ -226,13 +260,74 @@ export default function App() {
                 key="player"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full flex items-center justify-center"
+                className="w-full flex flex-col items-center gap-6"
               >
                 <CreativePlayer 
                   blueprint={blueprint} 
                   onEditScene={(idx) => setEditingSceneIdx(idx)}
                 />
+                
+                <div className="flex gap-4">
+                   <button 
+                     onClick={saveDraft}
+                     className="px-6 py-3 glass rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-white/60 hover:text-white flex items-center gap-2 border border-white/5 transition-all active:scale-95"
+                   >
+                     <Sparkles className="w-4 h-4 text-orange-400" /> Salvar Rascunho
+                   </button>
+                </div>
               </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Drafts Modal */}
+          <AnimatePresence>
+            {showDrafts && (
+              <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4">
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                  onClick={() => setShowDrafts(false)}
+                />
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="relative w-full max-w-xl glass border-white/10 rounded-[40px] p-8 md:p-12 shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden"
+                >
+                   <div className="absolute top-0 right-0 p-8">
+                     <button onClick={() => setShowDrafts(false)} className="p-2 glass rounded-full text-white/40 hover:text-white"><X className="w-5 h-5" /></button>
+                   </div>
+                   
+                   <div className="space-y-8">
+                      <div className="space-y-1 text-center md:text-left">
+                        <h2 className="text-3xl font-black italic tracking-tighter uppercase">Seus Rascunhos</h2>
+                        <p className="text-white/40 text-xs font-bold uppercase tracking-widest">Acesse suas criações salvas localmente</p>
+                      </div>
+
+                      <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 no-scrollbar">
+                         {drafts.length === 0 ? (
+                           <div className="py-12 text-center text-white/20 font-black uppercase tracking-widest text-xs">Nenhum rascunho salvo</div>
+                         ) : (
+                           drafts.map((d) => (
+                             <div 
+                               key={d.id}
+                               onClick={() => loadDraft(d)}
+                               className="p-6 glass border-white/5 hover:border-orange-500/30 transition-all rounded-3xl cursor-pointer group flex items-center justify-between"
+                             >
+                               <div>
+                                 <div className="font-black italic text-lg">{d.name || "Sem Nome"}</div>
+                                 <div className="text-[9px] uppercase tracking-widest text-white/30 font-bold">{d.scenes.length} Cenas • {d.mode}</div>
+                               </div>
+                               <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-orange-500 group-hover:border-orange-500 transition-all">
+                                 <ArrowRight className="w-4 h-4" />
+                               </div>
+                             </div>
+                           ))
+                         )}
+                      </div>
+                   </div>
+                </motion.div>
+              </div>
             )}
           </AnimatePresence>
 
