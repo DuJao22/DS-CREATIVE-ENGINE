@@ -6,27 +6,38 @@ export function getAiInstance(customKey?: string) {
   return apiKey ? new GoogleGenAI({ apiKey }) : null;
 }
 
-export async function verifyApiKey(key: string): Promise<{ valid: boolean; error?: string }> {
+export async function verifyApiKey(key: string): Promise<{ valid: boolean; error?: string; rawError?: any }> {
   try {
     const trimmedKey = key.trim();
     if (!trimmedKey) return { valid: false, error: "Chave vazia" };
     
+    // We try to use gemini-1.5-flash which is the most stable and available
     const ai = new GoogleGenAI({ apiKey: trimmedKey });
+    const model = ai.models.get("gemini-1.5-flash");
+    
     await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: [{ role: 'user', parts: [{ text: "ping" }] }]
     });
     return { valid: true };
   } catch (err: any) {
     console.error("API Key verification failed:", err);
     const msg = err.message || String(err);
-    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
-      return { valid: false, error: "COTA_EXCEDIDA: Limite de requisições atingido. Tente em 1 minuto." };
+    const status = err.status || (err.response ? err.response.status : null);
+
+    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || status === 429) {
+      return { valid: false, error: "COTA_EXCEDIDA: Sua chave atingiu o limite de uso gratuito. Tente em 1 minuto.", rawError: err };
     }
-    if (msg.includes("403") || msg.includes("API_KEY_INVALID") || msg.includes("INVALID_ARGUMENT")) {
-      return { valid: false, error: "CHAVE_INVALIDA: Verifique se copiou a chave corretamente." };
+    
+    if (msg.includes("403") || msg.includes("400") || msg.includes("API_KEY_INVALID") || msg.includes("INVALID_ARGUMENT") || msg.includes("not valid") || status === 403 || status === 400) {
+      return { 
+        valid: false, 
+        error: "CHAVE_INVALIDA: O Google recusou esta chave. Se você acabou de criá-la, aguarde 5 minutos para ela ativar. Verifique se copiou a chave COMPLETA e se a API do Gemini está ativada no seu console.",
+        rawError: err
+      };
     }
-    return { valid: false, error: msg };
+
+    return { valid: false, error: `ERRO DA API: ${msg}`, rawError: err };
   }
 }
 
@@ -39,7 +50,7 @@ export async function generateDesignBlueprint(
 ): Promise<DesignBlueprint> {
   const ai = getAiInstance(customApiKey);
   if (!ai) {
-    throw new Error("GEMINI_API_KEY não configurada. Adicione sua chave nas configurações.");
+    throw new Error("API KEY não encontrada. Vá em Configurações e insira sua Gemini API Key.");
   }
   
   const systemInstruction = `
@@ -79,7 +90,7 @@ export async function generateDesignBlueprint(
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: [{ role: 'user', parts: [{ text: script }] }],
       config: {
         systemInstruction,
