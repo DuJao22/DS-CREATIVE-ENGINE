@@ -1,14 +1,36 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { DesignBlueprint, DesignMode, VideoFormat } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+export function getAiInstance(customKey?: string) {
+  const apiKey = customKey || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : null);
+  return apiKey ? new GoogleGenAI({ apiKey }) : null;
+}
+
+export async function verifyApiKey(key: string): Promise<boolean> {
+  try {
+    const ai = new GoogleGenAI({ apiKey: key });
+    await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: "ping"
+    });
+    return true;
+  } catch (err) {
+    console.error("API Key verification failed:", err);
+    return false;
+  }
+}
 
 export async function generateDesignBlueprint(
   script: string,
   mode: DesignMode,
   format: VideoFormat,
+  customApiKey?: string,
   isStoryBatch: boolean = false
 ): Promise<DesignBlueprint> {
+  const ai = getAiInstance(customApiKey);
+  if (!ai) {
+    throw new Error("GEMINI_API_KEY não configurada. Adicione sua chave nas configurações.");
+  }
   const prompt = `
     Transform the following video script into a professional animated creative blueprint.
     

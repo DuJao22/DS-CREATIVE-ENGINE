@@ -4,9 +4,11 @@ import { CreativePlayer } from "./components/CreativePlayer";
 import { HistoryTab } from "./components/HistoryTab";
 import { SceneEditor } from "./components/SceneEditor";
 import { NotificationSystem } from "./components/NotificationSystem";
+import { SettingsModal } from "./components/SettingsModal";
+import { Onboarding } from "./components/Onboarding";
 import { DesignBlueprint, DesignMode, VideoFormat } from "./types";
 import { generateDesignBlueprint } from "./services/geminiService";
-import { Sparkles, Video, Layers, Wand2, Download, Menu, X, Maximize } from "lucide-react";
+import { Sparkles, Video, Layers, Wand2, Download, Menu, X, Maximize, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function App() {
@@ -15,10 +17,19 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [editingSceneIdx, setEditingSceneIdx] = useState<number | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || "");
 
   useEffect(() => {
+    // Check for first time access or missing key
+    const hasSeenOnboarding = localStorage.getItem('has_seen_onboarding_v2');
+    if (!hasSeenOnboarding || !geminiKey) {
+      setShowOnboarding(true);
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -28,31 +39,16 @@ export default function App() {
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
-  }, []);
+  }, [geminiKey]);
 
   const saveToHistory = async (bp: DesignBlueprint) => {
-    // 1. Save to LocalStorage (Fallback)
+    // 1. Save to LocalStorage
     try {
       const localHistory = JSON.parse(localStorage.getItem('creatives_history') || '[]');
       const updatedLocal = [bp, ...localHistory].slice(0, 50); // limit to 50
       localStorage.setItem('creatives_history', JSON.stringify(updatedLocal));
     } catch (e) {
       console.warn("LocalStorage save failed", e);
-    }
-
-    // 2. Save to DB (Primary)
-    try {
-      await fetch("/api/history", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: bp.id,
-          name: bp.scenes[0].text,
-          data: bp
-        })
-      });
-    } catch (err) {
-      console.error("Failed to save history to DB", err);
     }
   };
 
@@ -67,20 +63,32 @@ export default function App() {
   };
 
   const handleGenerate = async (script: string, mode: DesignMode, format: VideoFormat, isStoryBatch: boolean) => {
+    if (!geminiKey) {
+      setError("Configure sua Gemini API Key nas configurações primeiro.");
+      setIsSettingsOpen(true);
+      return;
+    }
+
     setIsGenerating(true);
     setError(null);
     if (window.innerWidth < 1024) setIsSidebarOpen(false);
     
     try {
-      const result = await generateDesignBlueprint(script, mode, format, isStoryBatch);
+      const result = await generateDesignBlueprint(script, mode, format, geminiKey, isStoryBatch);
       setBlueprint(result);
       saveToHistory(result);
     } catch (err) {
       console.error(err);
-      setError("Erro ao gerar seu criativo. Verifique sua chave de API ou tente um script diferente.");
+      setError(err instanceof Error ? err.message : "Erro ao gerar seu criativo. Verifique sua chave de API.");
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const saveGeminiKey = (key: string) => {
+    setGeminiKey(key);
+    localStorage.setItem('gemini_api_key', key);
+    setIsSettingsOpen(false);
   };
 
   return (
@@ -91,7 +99,7 @@ export default function App() {
       <div className="fixed top-[20%] right-[10%] w-[300px] h-[300px] bg-orange-500/15 rounded-full blur-[80px] pointer-events-none" />
 
       {/* Top Navigation */}
-      <nav className="relative z-50 flex items-center justify-between px-4 lg:px-8 py-4 border-b border-white/10 backdrop-blur-md bg-black/20">
+      <nav className="fixed top-0 inset-x-0 z-[10000] flex items-center justify-between px-4 lg:px-8 py-4 border-b border-white/10 backdrop-blur-md bg-black/40">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -107,8 +115,18 @@ export default function App() {
         
         <div className="flex items-center gap-2 lg:gap-4">
           <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2 lg:p-3 glass rounded-full text-white/40 hover:text-white transition-all shadow-lg active:scale-95 group relative"
+          >
+            <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
+            {!geminiKey && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-black animate-pulse" />
+            )}
+          </button>
+
+          <button 
             onClick={() => setIsHistoryOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 glass rounded-full text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all shadow-lg active:scale-95"
+            className="flex items-center gap-2 px-3 py-2 lg:px-5 lg:py-3 glass rounded-full text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all shadow-lg active:scale-95"
           >
             <Layers className="w-4 h-4" /> <span className="hidden sm:inline">Histórico</span>
           </button>
@@ -127,7 +145,7 @@ export default function App() {
         </div>
       </nav>
 
-      <div className="flex flex-1 overflow-hidden relative z-10 transition-all duration-500">
+      <div className="flex flex-1 overflow-hidden relative z-10 transition-all duration-500 mt-[73px]">
         {/* Sidebar - Control Panel */}
         <aside className={`
           fixed lg:static inset-y-0 left-0 z-40 w-80 flex-shrink-0 
@@ -231,6 +249,28 @@ export default function App() {
           <HistoryTab 
             onSelect={(bp) => setBlueprint(bp)} 
             onClose={() => setIsHistoryOpen(false)} 
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <SettingsModal 
+            currentKey={geminiKey}
+            onSave={saveGeminiKey}
+            onClose={() => setIsSettingsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showOnboarding && (
+          <Onboarding 
+            onComplete={() => {
+              setShowOnboarding(false);
+              localStorage.setItem('has_seen_onboarding_v2', 'true');
+              if (!geminiKey) setIsSettingsOpen(true);
+            }}
           />
         )}
       </AnimatePresence>
