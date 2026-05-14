@@ -11,64 +11,47 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
   const trimmedKey = key.trim();
   if (!trimmedKey) return { valid: false, error: "Chave vazia" };
 
-  // Models to try in order of preference
-  const testModels = ["gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-2.0-flash"];
-  let lastError: any = null;
-  let hasPermissionError = false;
-
-  for (const modelName of testModels) {
-    try {
-      const ai = new GoogleGenAI({ apiKey: trimmedKey });
-      await ai.models.generateContent({
-        model: modelName,
-        contents: "ping",
-      });
-      return { valid: true };
-    } catch (err: any) {
-      lastError = err;
-      const msg = (err.message || String(err)).toUpperCase();
-      
-      // If it's a quota error, we stop and report it
-      if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
-        return { valid: false, error: "COTA_EXCEDIDA: Sua chave atingiu o limite de uso gratuito. Tente em 1 minuto.", rawError: err };
-      }
-      
-      // If it's explicitly an invalid API key error, we break
-      if (msg.includes("API_KEY_INVALID") || msg.includes("KEY NOT VALID") || msg.includes("401")) {
-        break;
-      }
-
-      // If it's a permission denied for THIS model, we note it but try next
-      if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
-        hasPermissionError = true;
-        continue;
-      }
-
-      // If it's not a 404 (model not found), it's likely a fatal error, but let's try others anyway
-    }
-  }
-
-  console.error("API Key verification failed:", lastError);
-  const msg = (lastError?.message || String(lastError)).toUpperCase();
+  // For verification, we only try ONE lightweight model to save quota.
+  // Testing multiple models for verification is a waste of requests.
+  const testModel = "gemini-1.5-flash";
   
-  // If we had at least one permission error but tried all models, maybe the key is valid but restricted
-  if (msg.includes("API_KEY_INVALID") || msg.includes("KEY NOT VALID") || msg.includes("401")) {
-    return { 
-      valid: false, 
-      error: "CHAVE_INVALIDA: O Google recusou esta chave. Verifique se copiou a chave COMPLETA e se ela está ativa no Google AI Studio.",
-      rawError: lastError
-    };
-  }
+  try {
+    const ai = new GoogleGenAI({ apiKey: trimmedKey });
+    await ai.models.generateContent({
+      model: testModel,
+      contents: "ping",
+    });
+    return { valid: true };
+  } catch (err: any) {
+    const msg = (err.message || String(err)).toUpperCase();
+    
+    // If it's a quota error, we stop immediately.
+    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
+      return { 
+        valid: false, 
+        error: "COTA_EXCEDIDA: Sua chave atingiu o limite de uso gratuito. Aguarde 60 segundos antes de tentar novamente.", 
+        rawError: err 
+      };
+    }
+    
+    if (msg.includes("API_KEY_INVALID") || msg.includes("KEY NOT VALID") || msg.includes("401")) {
+      return { 
+        valid: false, 
+        error: "CHAVE_INVALIDA: O Google recusou esta chave. Verifique se copiou a chave completa.",
+        rawError: err
+      };
+    }
 
-  if (hasPermissionError) {
-    return {
-      valid: false,
-      error: "ERRO_PERMISSAO: Sua chave é válida, mas não tem permissão para os modelos necessários. Verifique se o faturamento está ok no Google Cloud ou use uma chave do Google AI Studio.",
-      rawError: lastError
-    };
-  }
+    if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
+      return {
+        valid: false,
+        error: "ERRO_PERMISSAO: Sua chave é válida, mas não tem acesso a este modelo no Google Cloud.",
+        rawError: err
+      };
+    }
 
-  return { valid: false, error: `ERRO DA API: ${msg}`, rawError: lastError };
+    return { valid: false, error: `ERRO DA API: ${msg}`, rawError: err };
+  }
 }
 
 export async function generateDesignBlueprint(
