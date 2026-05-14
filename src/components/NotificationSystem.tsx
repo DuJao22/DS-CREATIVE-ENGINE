@@ -35,7 +35,7 @@ export function NotificationSystem() {
   return (
     <>
       {/* Purchase Notification (Bottom Left) */}
-      <div className="fixed bottom-6 left-6 z-[9999] flex flex-col gap-4 pointer-events-none">
+      <div className="fixed bottom-6 left-6 z-20 flex flex-col gap-4 pointer-events-none">
         <AnimatePresence>
           {purchase && (
             <motion.div
@@ -64,7 +64,7 @@ export function NotificationSystem() {
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed inset-x-0 bottom-10 mx-auto flex items-center justify-center p-4 z-[9999] pointer-events-none"
+            className="fixed inset-x-0 bottom-10 mx-auto flex items-center justify-center p-4 z-20 pointer-events-none"
           >
             <div 
               className="group flex flex-col sm:flex-row items-center gap-5 p-5 glass border-orange-500/30 rounded-[32px] shadow-2xl bg-black/90 backdrop-blur-2xl max-w-lg pointer-events-auto cursor-pointer relative overflow-hidden"

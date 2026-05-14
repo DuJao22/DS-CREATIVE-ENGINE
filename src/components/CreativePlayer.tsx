@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { SceneRenderer } from "./SceneRenderer";
 import { DesignBlueprint } from "../types";
-import { Play, Pause, SkipForward, SkipBack, Maximize, Minimize, Settings } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Maximize, Minimize, Settings, Download } from "lucide-react";
 import { cn } from "../lib/utils";
+import { toPng } from 'html-to-image';
+import JSZip from 'jszip';
 
 interface CreativePlayerProps {
   blueprint: DesignBlueprint;
@@ -26,6 +28,45 @@ export function CreativePlayer({ blueprint, onFinish, onEditScene }: CreativePla
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const playerRef = useRef<HTMLDivElement>(null);
+
+  const downloadCurrentScene = async () => {
+    if (!playerRef.current) return;
+    try {
+      const dataUrl = await toPng(playerRef.current, { quality: 0.95 });
+      const link = document.createElement('a');
+      link.download = `scene-${currentSceneIndex + 1}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Download failed', err);
+    }
+  };
+
+  const downloadAllScenes = async () => {
+    if (!playerRef.current) return;
+    const zip = new JSZip();
+    const folder = zip.folder("scenes");
+    setIsPaused(true);
+
+    try {
+      for (let i = 0; i < blueprint.scenes.length; i++) {
+        setCurrentSceneIndex(i);
+        // Wait for render
+        await new Promise(resolve => setTimeout(resolve, 800));
+        const dataUrl = await toPng(playerRef.current, { quality: 0.95 });
+        const base64Data = dataUrl.split(',')[1];
+        folder?.file(`scene-${i + 1}.png`, base64Data, { base64: true });
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const link = document.createElement('a');
+      link.download = `criativos-${blueprint.id.slice(0, 8)}.zip`;
+      link.href = URL.createObjectURL(content);
+      link.click();
+    } catch (err) {
+      console.error('Batch download failed', err);
+    }
+  };
 
   // Reset index when blueprint changes to avoid out-of-bounds access
   useEffect(() => {
@@ -146,6 +187,12 @@ export function CreativePlayer({ blueprint, onFinish, onEditScene }: CreativePla
               <SkipForward className="w-4 h-4" />
             </button>
             <div className="hidden sm:block w-[1px] h-4 bg-white/10 mx-1" />
+            <button onClick={downloadCurrentScene} className="text-white/40 hover:text-white transition-colors p-1" title="Download Atual">
+              <Download className="w-4 h-4" />
+            </button>
+            <button onClick={downloadAllScenes} className="text-orange-500/60 hover:text-orange-500 transition-colors p-1" title="Download Todos (ZIP)">
+              <Download className="w-4 h-4" />
+            </button>
             <button onClick={() => onEditScene?.(currentSceneIndex)} className="text-white/40 hover:text-white transition-colors p-1">
               <Settings className="w-4 h-4" />
             </button>
