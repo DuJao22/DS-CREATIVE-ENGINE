@@ -32,13 +32,16 @@ export function Sidebar({ onGenerate, isGenerating }: SidebarProps) {
     <div className="flex flex-col h-full p-6 gap-8 overflow-y-auto no-scrollbar">
       {/* Script Input */}
       <div className="flex flex-col gap-3">
-        <label className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold block ml-1">Creative Script</label>
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 h-64 relative group hover:border-orange-500/50 transition-colors flex flex-col">
+        <div className="flex items-center justify-between ml-1">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold block">Roteiro do Criativo</label>
+          <span className="text-[9px] text-orange-500/60 font-medium animate-pulse uppercase">Modo Inteligente Ativo</span>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 h-72 relative group hover:border-orange-500/50 transition-colors flex flex-col shadow-inner">
           <textarea
             value={script}
             onChange={(e) => setScript(e.target.value)}
-            placeholder="Ex: Tópico 1... Tópico 2..."
-            className="w-full flex-grow bg-transparent border-none outline-none resize-none text-sm leading-relaxed text-white/80 placeholder:text-white/20"
+            placeholder="Cole aqui sua explicação, passo-a-passo ou roteiro. A IA manterá sua lógica exata enquando eleva o design ao nível DS Company.&#10;&#10;Ex: Passo 1: Acesse dscompany.com... Passo 2: Clique em Registrar..."
+            className="w-full flex-grow bg-transparent border-none outline-none resize-none text-sm leading-relaxed text-white/80 placeholder:text-white/20 scrollbar-thin scrollbar-thumb-white/10"
           />
           <div className="flex justify-between items-center mt-2">
             <span className="text-[9px] font-mono text-white/20 uppercase tracking-tighter">{script.length} characters</span>

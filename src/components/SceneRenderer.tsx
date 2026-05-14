@@ -61,20 +61,20 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
     switch (scene.layoutType) {
       case 'hero':
         return (
-          <div className="flex flex-col items-center text-center max-w-full px-4 md:px-8 gap-6 md:gap-8 transform-style-3d">
+          <div className="flex flex-col items-center text-center max-w-full px-4 gap-6 transform-style-3d">
             <motion.div
               initial={{ opacity: 0, y: -20, rotateX: -20 }}
               animate={{ opacity: 1, y: 0, rotateX: 0 }}
               transition={{ delay: 0.1, duration: 1 }}
-              className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[9px] md:text-[11px] font-black tracking-[0.3em] uppercase text-white/50 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+              className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[9px] font-black tracking-[0.3em] uppercase text-white/50 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
             >
-              Premium Content • 2024
+              DS CREATIVE • GEN
             </motion.div>
             <motion.h1 
               initial={{ opacity: 0, z: 100, rotateX: 20 }}
               animate={{ opacity: 1, z: 0, rotateX: 0 }}
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+              className="text-3xl sm:text-4xl font-black drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] uppercase italic tracking-tighter"
             >
               {renderText(scene.text)}
             </motion.h1>
@@ -83,7 +83,7 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="text-sm sm:text-base md:text-xl max-w-md md:max-w-xl mx-auto opacity-70"
+                className="text-xs sm:text-sm px-4 opacity-70 font-medium"
               >
                 {renderText(scene.subtext, false)}
               </motion.p>
@@ -93,10 +93,10 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
                 initial={{ opacity: 0, scale: 0.8, z: -50 }}
                 animate={{ opacity: 1, scale: 1, z: 0 }}
                 transition={{ delay: 1.2, type: "spring" }}
-                className="mt-6 px-10 py-5 rounded-full font-black uppercase tracking-[0.2em] text-[10px] md:text-[12px] flex items-center gap-4 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] bg-gradient-to-r from-accent to-accent/80 hover:brightness-110 active:scale-95 transition-all preserve-3d"
+                className="mt-6 px-8 py-4 rounded-full font-black uppercase tracking-[0.2em] text-[9px] flex items-center gap-3 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] bg-gradient-to-r from-accent to-accent/80 hover:brightness-110 active:scale-95 transition-all preserve-3d"
                 style={{ backgroundColor: colors.accent, color: colors.background }}
               >
-                <span className="translate-z-10">{scene.ctaText}</span> <ArrowRight className="w-4 h-4 md:w-5 md:h-5 translate-z-10" />
+                <span className="translate-z-10">{scene.ctaText}</span> <ArrowRight className="w-3 h-3 translate-z-10" />
               </motion.button>
             )}
           </div>
@@ -104,98 +104,93 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
 
       case 'bento':
         return (
-          <div className="grid grid-cols-2 grid-rows-3 md:grid-rows-2 gap-3 md:gap-5 w-full h-full max-w-4xl p-4 md:p-10 perspective-1000 transform-style-3d">
+          <div className="grid grid-cols-2 gap-3 w-full h-full p-4 perspective-1000 transform-style-3d">
             <motion.div 
               initial={{ opacity: 0, rotateY: -15, z: -50 }} 
               animate={{ opacity: 1, rotateY: 0, z: 0 }} 
               transition={{ duration: 1 }}
-              className="col-span-2 row-span-1 rounded-[24px] md:rounded-[40px] glass border-white/5 p-6 md:p-12 flex flex-col justify-center gap-3 overflow-hidden group shadow-2xl relative"
+              className="col-span-2 row-span-1 rounded-[24px] glass border-white/5 p-6 flex flex-col justify-center gap-2 overflow-hidden group shadow-2xl relative"
             >
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity translate-z-20">
-                <Sparkles className="w-16 h-16 md:w-24 md:h-24" />
+                <Sparkles className="w-12 h-12" />
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter leading-none relative z-10 translate-z-10">{renderText(scene.text)}</h2>
-              {scene.subtext && <p className="text-[10px] md:text-sm opacity-50 font-bold uppercase tracking-widest relative z-10 translate-z-5">{scene.subtext}</p>}
+              <h2 className="text-xl sm:text-2xl font-black tracking-tighter leading-none relative z-10 translate-z-10 uppercase italic">{renderText(scene.text)}</h2>
+              {scene.subtext && <p className="text-[9px] opacity-50 font-black uppercase tracking-widest relative z-10 translate-z-5">{scene.subtext}</p>}
             </motion.div>
             <motion.div 
               initial={{ opacity: 0, x: -50, rotateY: 30 }} 
               animate={{ opacity: 1, x: 0, rotateY: 0 }} 
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="col-span-1 glass border-white/5 p-4 md:p-10 rounded-[20px] md:rounded-[40px] flex items-center justify-center bg-accent/5 shadow-xl"
+              className="col-span-1 glass border-white/5 p-4 rounded-[16px] flex items-center justify-center bg-accent/5 shadow-xl"
             >
               <div className="relative translate-z-30">
                 <div className="absolute inset-0 bg-accent/20 blur-2xl rounded-full" />
-                <Zap className="w-10 h-10 md:w-16 md:h-16 text-accent relative z-10" />
+                <Zap className="w-8 h-8 text-accent relative z-10" />
               </div>
             </motion.div>
             <motion.div 
               initial={{ opacity: 0, x: 50, rotateY: -30 }} 
               animate={{ opacity: 1, x: 0, rotateY: 0 }} 
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="col-span-1 glass border-white/5 p-4 md:p-8 rounded-[20px] md:rounded-[40px] flex flex-col justify-center text-center gap-1 md:gap-2 shadow-xl"
+              className="col-span-1 glass border-white/5 p-4 rounded-[16px] flex flex-col justify-center text-center gap-1 shadow-xl"
             >
-              <div className="text-xl sm:text-2xl md:text-5xl font-black text-accent tracking-tighter italic translate-z-20">TOP RANK</div>
-              <div className="text-[8px] md:text-[10px] uppercase font-black opacity-30 tracking-[0.25em] translate-z-10">Industry Leader</div>
+              <div className="text-sm font-black text-accent tracking-tighter italic translate-z-20 uppercase">Top Phase</div>
+              <div className="text-[8px] uppercase font-black opacity-30 tracking-[0.2em] translate-z-10">Process Start</div>
             </motion.div>
           </div>
         );
 
       case 'card':
         return (
-          <div className="flex flex-col items-center justify-center gap-10 w-full p-6 md:p-12 perspective-2000 transform-style-3d">
+          <div className="flex flex-col items-center justify-center gap-6 w-full p-6 perspective-2000 transform-style-3d">
             <motion.div
               initial={{ y: 100, opacity: 0, rotateX: 45, rotateY: 15, z: -200 }}
               animate={{ y: 0, opacity: 1, rotateX: 0, rotateY: 0, z: 0 }}
               transition={{ type: "spring", damping: 20, stiffness: 80, delay: 0.2 }}
               whileHover={{ rotateY: 10, rotateX: -5, z: 50 }}
-              className="w-full max-w-sm glass border-white/20 p-8 md:p-14 rounded-[32px] md:rounded-[60px] shadow-[0_100px_200px_-50px_rgba(0,0,0,0.9)] relative group overflow-hidden transform-style-3d"
+              className="w-full max-w-[280px] sm:max-w-sm glass border-white/20 p-6 sm:p-10 rounded-[24px] sm:rounded-[40px] shadow-[0_50px_100px_-25px_rgba(0,0,0,0.8)] relative group overflow-hidden transform-style-3d"
             >
-               <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/10 blur-[80px] rounded-full group-hover:bg-accent/20 transition-colors translate-z-[-20px]" />
+               <div className="absolute -top-10 -right-10 w-24 h-24 bg-accent/10 blur-[50px] rounded-full group-hover:bg-accent/20 transition-colors translate-z-[-20px]" />
                <motion.div
                  initial={{ scale: 0 }}
                  animate={{ scale: 1 }}
                  transition={{ delay: 0.8, type: "spring" }}
-                 className="translate-z-50 mb-8"
+                 className="translate-z-50 mb-6"
                >
-                 <Sparkles className="w-10 h-10 md:w-14 md:h-14 text-accent" />
+                 <Sparkles className="w-8 h-8 text-accent" />
                </motion.div>
-               <h2 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.05] mb-6 translate-z-40 drop-shadow-lg">{renderText(scene.text)}</h2>
-               {scene.subtext && <p className="text-sm sm:text-base md:text-xl opacity-60 leading-relaxed font-semibold translate-z-20">{scene.subtext}</p>}
+               <h2 className="text-2xl sm:text-3xl font-black leading-tight mb-4 translate-z-40 drop-shadow-lg uppercase italic">{renderText(scene.text)}</h2>
+               {scene.subtext && <p className="text-[10px] sm:text-xs opacity-60 leading-relaxed font-bold translate-z-20 uppercase">{scene.subtext}</p>}
             </motion.div>
           </div>
         );
 
       case 'feature-list':
         return (
-          <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 w-full max-w-6xl px-6 md:px-12 transform-style-3d">
+          <div className="flex flex-col items-center justify-center gap-8 w-full max-w-sm px-4 transform-style-3d pt-12">
             <motion.div 
-              initial={{ opacity: 0, x: -100, rotateY: 30 }}
-              animate={{ opacity: 1, x: 0, rotateY: 0 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="flex-1 space-y-4 md:space-y-8 text-center md:text-left drop-shadow-2xl"
+              className="space-y-4 text-center drop-shadow-2xl"
             >
-              <h2 className="text-4xl sm:text-5xl md:text-8xl font-black leading-[0.9] italic tracking-tighter">{renderText(scene.text)}</h2>
-              <p className="text-base sm:text-lg md:text-2xl opacity-50 font-bold max-w-md mx-auto md:mx-0">{scene.subtext}</p>
+              <h2 className="text-3xl sm:text-4xl font-black leading-none italic tracking-tighter uppercase">{renderText(scene.text)}</h2>
+              <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">{scene.subtext}</p>
             </motion.div>
-            <div className="flex-1 w-full max-w-md grid gap-3 md:gap-6 transform-style-3d">
+            <div className="w-full space-y-3 transform-style-3d">
               {[Zap, Shield, Target].map((Icon, i) => (
                 <motion.div
                   key={i}
-                  initial={{ x: 100, opacity: 0, rotateY: -30, z: -50 }}
-                  animate={{ x: 0, opacity: 1, rotateY: 0, z: 0 }}
+                  initial={{ x: 50, opacity: 0, z: -50 }}
+                  animate={{ x: 0, opacity: 1, z: 0 }}
                   transition={{ delay: 0.8 + i * 0.15, ease: "circOut", duration: 0.8 }}
-                  whileHover={{ x: -10, z: 40, scale: 1.02 }}
-                  className="flex items-center gap-4 md:gap-6 p-4 md:p-6 rounded-[20px] md:rounded-[32px] glass border-white/5 hover:border-accent/40 hover:bg-accent/5 transition-all group overflow-hidden relative shadow-xl transform-style-3d"
+                  className="flex items-center gap-4 p-4 rounded-[16px] glass border-white/5 hover:border-accent/40 bg-white/5 transition-all group overflow-hidden relative shadow-xl transform-style-3d"
                 >
-                  <div className="w-10 h-10 md:w-14 md:h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform shadow-lg relative z-10 translate-z-20">
-                    <Icon className="w-5 h-5 md:w-7 md:h-7" />
+                  <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform translate-z-20">
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div className="relative z-10 translate-z-10">
-                    <div className="font-black uppercase tracking-[0.2em] text-[8px] md:text-[10px] opacity-40 mb-1">Standard 0{i+1}</div>
-                    <div className="font-black text-xs md:text-base italic tracking-tight">World Class Quality</div>
-                  </div>
-                  <div className="absolute right-[-20%] bottom-[-20%] opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-                    <Icon className="w-24 h-24 md:w-32 md:h-32" />
+                    <div className="font-black text-xs italic tracking-tight uppercase">High End Standard</div>
                   </div>
                 </motion.div>
               ))}

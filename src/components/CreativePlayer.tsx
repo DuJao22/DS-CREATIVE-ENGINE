@@ -150,10 +150,16 @@ export function CreativePlayer({ blueprint, onFinish, onEditScene }: CreativePla
           isFullScreen 
             ? "w-full h-full rounded-0 border-0" 
             : is916 
-              ? "w-[300px] sm:w-[320px] h-[600px] sm:h-[640px] rounded-[48px] border-[8px] border-[#1a1a1a] shadow-[0_0_80px_rgba(139,92,246,0.15)]" 
-              : "aspect-[16/9] w-full rounded-2xl border border-white/10"
+              ? "w-[min(320px,80vw)] h-[min(640px,80vh)] rounded-[40px] sm:rounded-[48px] border-[6px] sm:border-[10px] border-[#111] shadow-[0_0_100px_rgba(0,0,0,0.8),0_0_40px_rgba(249,115,22,0.1)]" 
+              : "aspect-[16/9] w-full max-h-[70vh] rounded-2xl border border-white/10 shadow-2xl"
         )}
       >
+        {/* Dynamic Frame Reflection (Desktop) */}
+        {!isFullScreen && is916 && (
+          <div className="absolute inset-0 pointer-events-none z-[60] rounded-[34px] sm:rounded-[40px] border border-white/5 overflow-hidden">
+             <div className="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-[-100%] animate-[shimmer_8s_infinite] opacity-30" />
+          </div>
+        )}
         <AnimatePresence mode="wait">
           <SceneRenderer 
             key={currentScene.id} 

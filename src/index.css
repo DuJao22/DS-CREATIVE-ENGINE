@@ -9,6 +9,11 @@
   
   --animate-spin-slow: spin 8s linear infinite;
   --animate-pulse-subtle: pulse-subtle 3s ease-in-out infinite;
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-150%) skewX(-12deg); }
+    100% { transform: translateX(250%) skewX(-12deg); }
+  }
 }
 
 @keyframes pulse-subtle {
