@@ -3,7 +3,7 @@ import { DesignBlueprint, DesignMode, VideoFormat } from "../types";
 
 export function getAiInstance(customKey?: string) {
   const apiKey = customKey?.trim() || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY?.trim() : null);
-  return apiKey ? new GoogleGenAI({ apiKey }) : null;
+  return apiKey ? new GoogleGenAI({ apiKey, apiVersion: "v1" }) : null;
 }
 
 export async function verifyApiKey(key: string): Promise<{ valid: boolean; error?: string; rawError?: any }> {
@@ -11,9 +11,8 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
     const trimmedKey = key.trim();
     if (!trimmedKey) return { valid: false, error: "Chave vazia" };
     
-    // We try to use gemini-1.5-flash which is the most stable and available
-    const ai = new GoogleGenAI({ apiKey: trimmedKey });
-    const model = ai.models.get("gemini-1.5-flash");
+    // We try to use gemini-1.5-flash which is widely available on v1
+    const ai = new GoogleGenAI({ apiKey: trimmedKey, apiVersion: "v1" });
     
     await ai.models.generateContent({
       model: "gemini-1.5-flash",
