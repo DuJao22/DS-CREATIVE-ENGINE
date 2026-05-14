@@ -11,47 +11,61 @@ export async function verifyApiKey(key: string): Promise<{ valid: boolean; error
   const trimmedKey = key.trim();
   if (!trimmedKey) return { valid: false, error: "Chave vazia" };
 
-  // For verification, we only try ONE lightweight model to save quota.
-  // Testing multiple models for verification is a waste of requests.
-  const testModel = "gemini-1.5-flash";
+  // Use the alias from skill: 'gemini-flash-latest'
+  const testModels = ["gemini-flash-latest", "gemini-2.0-flash"];
+  let lastError: any = null;
   
-  try {
-    const ai = new GoogleGenAI({ apiKey: trimmedKey });
-    await ai.models.generateContent({
-      model: testModel,
-      contents: "ping",
-    });
-    return { valid: true };
-  } catch (err: any) {
-    const msg = (err.message || String(err)).toUpperCase();
-    
-    // If it's a quota error, we stop immediately.
-    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
-      return { 
-        valid: false, 
-        error: "COTA_EXCEDIDA: Sua chave atingiu o limite de uso gratuito. Aguarde 60 segundos antes de tentar novamente.", 
-        rawError: err 
-      };
-    }
-    
-    if (msg.includes("API_KEY_INVALID") || msg.includes("KEY NOT VALID") || msg.includes("401")) {
-      return { 
-        valid: false, 
-        error: "CHAVE_INVALIDA: O Google recusou esta chave. Verifique se copiou a chave completa.",
-        rawError: err
-      };
-    }
+  for (const modelName of testModels) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: trimmedKey });
+      await ai.models.generateContent({
+        model: modelName,
+        contents: "ping",
+      });
+      return { valid: true };
+    } catch (err: any) {
+      lastError = err;
+      const msg = (err.message || String(err)).toUpperCase();
+      
+      // If it's a quota error, we stop immediately.
+      if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
+        return { 
+          valid: false, 
+          error: "COTA_EXCEDIDA: Sua chave atingiu o limite de uso gratuito. Aguarde 60 segundos antes de tentar novamente.", 
+          rawError: err 
+        };
+      }
+      
+      if (msg.includes("API_KEY_INVALID") || msg.includes("KEY NOT VALID") || msg.includes("401")) {
+        return { 
+          valid: false, 
+          error: "CHAVE_INVALIDA: O Google recusou esta chave. Verifique se copiou a chave completa.",
+          rawError: err
+        };
+      }
 
-    if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
-      return {
-        valid: false,
-        error: "ERRO_PERMISSAO: Sua chave é válida, mas não tem acesso a este modelo no Google Cloud.",
-        rawError: err
-      };
+      if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
+        // Try next model if permission denied for this specific one
+        continue;
+      }
+      
+      // If it's a 404, try next
+      if (msg.includes("404") || msg.includes("NOT_FOUND")) {
+        continue;
+      }
     }
-
-    return { valid: false, error: `ERRO DA API: ${msg}`, rawError: err };
   }
+
+  const finalMsg = (lastError?.message || String(lastError)).toUpperCase();
+  if (finalMsg.includes("403") || finalMsg.includes("PERMISSION_DENIED")) {
+    return {
+      valid: false,
+      error: "ERRO_PERMISSAO: Sua chave é válida, mas não tem acesso aos modelos Flash. Verifique no AI Studio.",
+      rawError: lastError
+    };
+  }
+
+  return { valid: false, error: `ERRO DA API: ${finalMsg}`, rawError: lastError };
 }
 
 export async function generateDesignBlueprint(
@@ -78,8 +92,10 @@ export async function generateDesignBlueprint(
     
     AUTORIDADE VISUAL (ESTILO "DS COMPANY"):
     1. HIERARQUIA VISUAL: O texto principal ('text') é a sua manchete. Deve ser curto, mas fiel ao conteúdo original.
-    2. NARRATIVA COMPLEMENTAR: O 'subtext' deve conter detalhes técnicos, explicações ou instruções adicionais.
-    3. ESTRUTURA DE LISTA: Se você usar o layout 'timeline' ou 'feature-list', você DEVE preencher o array 'listItems' com itens extraídos do roteiro. Cada item deve ter um 'title' (impactante) e uma 'description' (explicativa/detalhada). Use no mínimo 3 itens se o conteúdo permitir.
+    2. NARRATIVA COMPLEMENTAR: O 'subtext' deve conter detalhes técnicos, explicações ou instruções adicionais vindas do roteiro.
+    3. ESTRUTURA DE LISTA (TÓPICOS 1, 2, 3): Se o roteiro contém uma sequência de passos ou lista, use o layout 'timeline'. 
+       - OBRIGATÓRIO: Preencha o array 'listItems' com no mínimo 3 itens. 
+       - CONTEÚDO: O 'title' deve ser o nome do passo/item e a 'description' DEVE detalhar o que deve ser feito (escrita relacionada e profissional).
     4. DESIGN GENERATIVO: Selecione a combinação PERFEITA de Layout, Animação e Impacto para cada trecho do texto.
     5. PALETAS DE CORES: Selecione cores HEX que transmitam autoridade. Extremamente importante usar preto puro (#000000) ou quase preto (#050505) como background em temas Luxury/Dark.
     
@@ -98,7 +114,8 @@ export async function generateDesignBlueprint(
     - ECONOMIA: Gere entre 5 a 15 cenas no máximo. Seja conciso no JSON.
   `;
 
-  const modelsToTry = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b"];
+  // Use aliases according to skill
+  const modelsToTry = ["gemini-flash-latest", "gemini-2.0-flash", "gemini-3-flash-preview"];
   let lastError: any = null;
 
   const sanitizedScript = script.substring(0, 15000);
