@@ -42,12 +42,21 @@ export async function generateDesignBlueprint(
     STORY_BATCH_MODE: ${isStoryBatch ? "ON - Each scene should be a complete independent hook/take for a single story post." : "OFF - Continuous video flow."}
     
     INSTRUCTIONS:
-    1. Divide the script into logical scenes (3-7 scenes usually).
-    2. Suggest specific animations for each scene based on the text emotion.
-    3. Highlight 2-3 impact words per scene.
-    4. Provide hex colors that match the chosen MODE.
-    5. Ensure the layoutType fits the text length.
-    ${isStoryBatch ? "6. Ensure each scene is self-contained and high-impact." : ""}
+    1. Divide the script into logical scenes (3-7 scenes).
+    2. Act as a world-class UI/UX Motion Designer (Apple/Vercel style).
+    3. For each scene, choose a sophisticated layoutType:
+       - 'hero': Large headline, subtext, and clear visual hierarchy.
+       - 'bento': Modern grid-like layout for feature highlights.
+       - 'card': Clean floating card elements with high shadows.
+       - 'feature-list': Clean list of benefits with icons (emoji).
+       - 'gallery': A 3-column masonry/grid style for visual variety.
+       - 'timeline': A structured vertical journey or step-by-step flow.
+       - 'split': Professional 50/50 balance.
+    4. Provide a 'subtext' that complements the main 'text' for richer storytelling.
+    5. High-impact scenes should use 'stagger' or 'blur-reveal'.
+    6. Ensure colors are highly sophisticated and contrast well.
+    7. Each scene should feel like a perfectly designed landing page section.
+    ${isStoryBatch ? "8. Each scene must be a complete, independent high-converting story post." : ""}
     
     The output must strictly follow the DesignBlueprint schema.
     IMPORTANT: Provide a unique "id" for the blueprint (random string).
@@ -85,12 +94,14 @@ export async function generateDesignBlueprint(
               properties: {
                 id: { type: Type.STRING },
                 text: { type: Type.STRING },
+                subtext: { type: Type.STRING },
                 highlightWords: { type: Type.ARRAY, items: { type: Type.STRING } },
                 animation: { type: Type.STRING, enum: ["fade", "zoom", "typewriter", "slide-up", "glitch", "blur-reveal", "stagger"] },
                 duration: { type: Type.NUMBER },
-                layoutType: { type: Type.STRING, enum: ["centered", "top", "bottom", "split"] },
+                layoutType: { type: Type.STRING, enum: ["centered", "top", "bottom", "split", "bento", "hero", "card", "feature-list", "gallery", "timeline"] },
                 impact: { type: Type.STRING, enum: ["low", "medium", "high"] },
-                backgroundEmoji: { type: Type.STRING }
+                backgroundEmoji: { type: Type.STRING },
+                ctaText: { type: Type.STRING }
               }
             }
           },

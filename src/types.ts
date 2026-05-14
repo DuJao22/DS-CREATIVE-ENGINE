@@ -19,16 +19,18 @@ export type DesignMode =
 export interface Scene {
   id: string;
   text: string;
+  subtext?: string;
   highlightWords: string[];
   backgroundEmoji?: string;
   backgroundImage?: string;
   animation: AnimationType;
   duration: number; // in seconds
-  layoutType: 'centered' | 'top' | 'bottom' | 'split';
+  layoutType: 'centered' | 'top' | 'bottom' | 'split' | 'bento' | 'hero' | 'card' | 'feature-list' | 'gallery' | 'timeline';
   impact: 'low' | 'medium' | 'high';
   fontSize?: number;
   fontFamily?: string;
   color?: string;
+  ctaText?: string;
 }
 
 export interface DesignBlueprint {

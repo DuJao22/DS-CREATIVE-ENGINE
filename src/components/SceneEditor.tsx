@@ -13,6 +13,7 @@ interface SceneEditorProps {
 export function SceneEditor({ blueprint, sceneIndex, onUpdate, onClose }: SceneEditorProps) {
   const scene = blueprint.scenes[sceneIndex];
   const [text, setText] = useState(scene.text);
+  const [subtext, setSubtext] = useState(scene.subtext || "");
   const [fontSize, setFontSize] = useState(scene.fontSize || 64);
   const [fontFamily, setFontFamily] = useState(scene.fontFamily || blueprint.fontFamily);
   const [layoutType, setLayoutType] = useState(scene.layoutType);
@@ -22,6 +23,7 @@ export function SceneEditor({ blueprint, sceneIndex, onUpdate, onClose }: SceneE
     updatedScenes[sceneIndex] = {
       ...scene,
       text,
+      subtext,
       fontSize,
       fontFamily,
       layoutType
@@ -44,16 +46,30 @@ export function SceneEditor({ blueprint, sceneIndex, onUpdate, onClose }: SceneE
         </div>
 
         <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh] no-scrollbar">
-          {/* Text Input */}
-          <div className="space-y-3">
-            <label className="text-[10px] uppercase font-bold text-white/40 tracking-widest flex items-center gap-2">
-              <Type className="w-3.5 h-3.5" /> Texto da Cena
-            </label>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm focus:outline-none focus:border-orange-500/50 transition-all resize-none"
-            />
+          {/* Text & Subtext */}
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <label className="text-[10px] uppercase font-bold text-white/40 tracking-widest flex items-center gap-2">
+                <Type className="w-3.5 h-3.5" /> Título Principal
+              </label>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-full h-24 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm focus:outline-none focus:border-orange-500/50 transition-all resize-none"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] uppercase font-bold text-white/40 tracking-widest flex items-center gap-2">
+                <Type className="w-3.5 h-3.5" opacity={0.5} /> Subtexto / Descrição
+              </label>
+              <textarea
+                value={subtext}
+                onChange={(e) => setSubtext(e.target.value)}
+                className="w-full h-20 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm focus:outline-none focus:border-orange-500/50 transition-all resize-none"
+                placeholder="Complemente a mensagem..."
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
@@ -72,16 +88,26 @@ export function SceneEditor({ blueprint, sceneIndex, onUpdate, onClose }: SceneE
 
             {/* Layout */}
             <div className="space-y-3">
-              <label className="text-[10px] uppercase font-bold text-white/40 tracking-widest">Alinhamento</label>
+              <label className="text-[10px] uppercase font-bold text-white/40 tracking-widest">Layout da Cena</label>
               <select 
                 value={layoutType}
                 onChange={(e) => setLayoutType(e.target.value as any)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs focus:outline-none"
               >
-                <option value="centered">Centralizado</option>
-                <option value="top">Superior</option>
-                <option value="bottom">Inferior</option>
-                <option value="split">Lateral</option>
+                <optgroup label="Básico">
+                  <option value="centered">Centralizado</option>
+                  <option value="top">Superior</option>
+                  <option value="bottom">Inferior</option>
+                  <option value="split">Lateral (Split)</option>
+                </optgroup>
+                <optgroup label="Pro Landing Page">
+                  <option value="hero">Hero Section</option>
+                  <option value="bento">Bento Grid</option>
+                  <option value="card">3D Floating Card</option>
+                  <option value="feature-list">Feature List</option>
+                  <option value="gallery">Gallery Grid</option>
+                  <option value="timeline">Timeline Journey</option>
+                </optgroup>
               </select>
             </div>
           </div>
