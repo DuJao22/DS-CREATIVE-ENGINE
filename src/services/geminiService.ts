@@ -88,21 +88,21 @@ export async function generateDesignBlueprint(
     - Toda a copy gerada deve ser em PORTUGUÊS DO BRASIL.
     - FIDELIDADE MÁXIMA: Você NÃO deve resumir ou criar textos genéricos. Use EXATAMENTE a lógica e os dados fornecidos no roteiro do usuário.
     - Se o usuário fornecer um passo-a-passo (como "Abra o site x", "Clique em y"), transforme cada passo em uma cena específica e visualmente impactante.
-    - Use um vocabulário sofisticado, direto e de altíssima conversão.
+    - PROFISSIONALISMO: Use um vocabulário sofisticado, direto e de altíssima conversão.
     
     AUTORIDADE VISUAL (ESTILO "DS COMPANY"):
     1. HIERARQUIA VISUAL: O texto principal ('text') é a sua manchete. Deve ser curto, mas fiel ao conteúdo original.
     2. NARRATIVA COMPLEMENTAR: O 'subtext' deve conter detalhes técnicos, explicações ou instruções adicionais vindas do roteiro.
     3. ESTRUTURA DE LISTA (TÓPICOS 1, 2, 3): Se o roteiro contém uma sequência de passos ou lista, use o layout 'timeline'. 
-       - OBRIGATÓRIO: Preencha o array 'listItems' com no mínimo 3 itens. 
-       - CONTEÚDO: O 'title' deve ser o nome do passo/item e a 'description' DEVE detalhar o que deve ser feito (escrita relacionada e profissional).
+       - OBRIGATÓRIO: Preencha o array 'listItems' com no mínimo 3 itens se o conteúdo permitir.
+       - ESCRITA RELACIONADA: O conteúdo de 'title' e 'description' deve ser 100% relacionado ao roteiro e escrito de forma profissional e detalhada.
     4. DESIGN GENERATIVO: Selecione a combinação PERFEITA de Layout, Animação e Impacto para cada trecho do texto.
-    5. PALETAS DE CORES: Selecione cores HEX que transmitam autoridade. Extremamente importante usar preto puro (#000000) ou quase preto (#050505) como background em temas Luxury/Dark.
+    5. PALETAS DE CORES: Selecione cores HEX que transmitam autoridade. Estética Minimal-High-Contrast. Backgrounds escuros (#000000).
     
     LAYOUTS ESTRATÉGICOS:
     - 'hero': Para frases de impacto ou títulos principais.
     - 'timeline': OBRIGATÓRIO para tutoriais, processos passo-a-passo ou listas de tópicos numerados (1, 2, 3).
-    - 'feature-list': Para listar benefícios ou características técnicas.
+    - 'feature-list': Para listar benefícios ou recursos técnicos.
     - 'bento': Para mostrar múltiplos recursos simultaneamente.
     - 'card': Para destacar um produto ou elemento central.
     - 'split': Equilíbrio visual entre texto longo e foco em palavra-chave.
@@ -188,54 +188,35 @@ export async function generateDesignBlueprint(
         }
       });
 
-      console.log(`Response received from ${modelName}`);
       const text = response.text;
       if (!text) throw new Error("A API retornou uma resposta vazia.");
       
       try {
         const parsed = JSON.parse(text);
-        console.log("Blueprint generated successfully");
         return parsed as DesignBlueprint;
       } catch (parseErr: any) {
-        console.error("JSON Parse Error. Data length:", text.length, "Preview:", text.substring(0, 200));
-        throw new Error(`ERRO_FORMATO: A resposta da IA veio incompleta ou malformada. Tente usar um roteiro mais curto.`);
+        throw new Error(`ERRO_FORMATO: A resposta da IA veio incompleta. Use um roteiro mais curto.`);
       }
     } catch (err: any) {
       lastError = err;
       const msg = err.message || String(err);
-      console.error(`Error with model ${modelName}:`, msg);
       
-      // If it's a format error, we don't try other models (it's likely the prompt/input issue)
-      if (msg.includes("ERRO_FORMATO")) {
-        break;
-      }
-
-      // If it's a permission error, we try the next model
-      if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
-        continue;
-      }
-
-      // If it's a quota error, we break
+      // Retry logic for 429
       if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
+        console.warn("Quota exceeded, skipping to next model or reporting...");
+        // On 429 with own key, usually the whole project is limited, so we break
         break;
       }
 
-      // If it's not a 404, we don't try other models
-      if (!msg.includes("404") && !msg.includes("NOT_FOUND")) {
-        break;
-      }
+      if (msg.includes("ERRO_FORMATO")) break;
+      if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) continue;
+      if (!msg.includes("404") && !msg.includes("NOT_FOUND")) break;
     }
   }
 
-  // If we reach here, report final error correctly
   const finalErrorMsg = lastError?.message || String(lastError);
-  console.error("Gemini Generation Error:", lastError);
-
   if (finalErrorMsg.includes("429") || finalErrorMsg.includes("RESOURCE_EXHAUSTED")) {
-    throw new Error("COTA_EXCEDIDA: Limite de requisições atingido. Tente novamente em 1 minuto.");
-  }
-  if (finalErrorMsg.includes("403") || finalErrorMsg.includes("PERMISSION_DENIED")) {
-    throw new Error("ERRO_PERMISSAO: Sua chave API não tem permissão para usar este modelo.");
+    throw new Error("COTA_EXCEDIDA: Sua chave atingiu o limite. Aguarde 60 segundos.");
   }
   
   throw new Error(`ERRO_API: ${finalErrorMsg}`);

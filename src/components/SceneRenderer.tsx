@@ -270,7 +270,7 @@ export function SceneRenderer({ scene, blueprint, isPaused }: SceneRendererProps
                     <div className="pt-1 translate-z-10">
                       <div className="font-black uppercase tracking-[0.25em] text-[7px] text-accent/60 mb-1">Tópico 0{i+1}</div>
                       <div className="text-xs sm:text-sm font-black italic opacity-90 leading-tight tracking-tight uppercase">{item.title}</div>
-                      {item.description && <p className="text-[9px] mt-1 opacity-50 font-bold leading-tight line-clamp-2">{item.description}</p>}
+                      {item.description && <p className="text-[9px] mt-1 opacity-50 font-bold leading-tight line-clamp-4">{item.description}</p>}
                     </div>
                   </motion.div>
                 ))}
